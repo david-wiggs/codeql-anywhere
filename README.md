@@ -3,6 +3,8 @@ During a presentation at the PowerShell Summit, it was mentioned that [with the 
 
 While there has historically always been the ability to leverage CodeQL within 3rd party CI/CD systems, the CodeQL runner [has been deprecated](https://github.blog/changelog/2021-09-21-codeql-runner-deprecation/). This repository aims to create, to the greatest extent possible, an environment agnostic (e.g., Azure DevOps, Jenkins, or even your local machine) means to to use CodeQL.
 
+---
+
 - [Requirements](#requirements)
 - [Approach](#approach)
 - [Assumptions](#assumptions)
