@@ -3,6 +3,22 @@ During a presentation at the PowerShell Summit, it was mentioned that [with the 
 
 While there has historically always been the ability to leverage CodeQL within 3rd party CI/CD systems, the CodeQL runner [has been deprecated](https://github.blog/changelog/2021-09-21-codeql-runner-deprecation/). This repository aims to create, to the greatest extent possible, an environment agnostic (e.g., Azure DevOps, Jenkins, or even your local machine) means to to use CodeQL.
 
+- [Requirements](#requirements)
+- [Approach](#approach)
+- [Assumptions](#assumptions)
+- [Interpreted Languages](#interpreted-languages)
+- [Compiled Languages](#compiled-languages)
+  - [C / C++](#c--c)
+  - [C#](#c)
+  - [Java](#java)
+  - [Go](#go)
+  - [Build Script](#build-script)
+- [Examples](#examples)
+  - [Local Machine](#local-machine)
+  - [Azure DevOps](#azure-devops)
+  - [Jenkins](#jenkins)
+- [Dot Sourcing](#dot-sourcing)
+
 # Requirements
 - PowerShell Core (i.e., [PowerShell 7](https://docs.microsoft.com/en-us/powershell/scripting/install/installing-powershell?view=powershell-7.2))
 
@@ -128,7 +144,7 @@ jobs:
 ```
 
 ## Jenkins
-This repository has the folder structure such that it can be consumed as a Jenkins [Shared Library](https://www.jenkins.io/doc/book/pipeline/shared-libraries/). Additionally, it contains the needed groovy script to call the `New-CodeQLScan.ps1` PowerShell script. Below is an example of a Jenkins Pipeline script that could be used. It assumes that there is a Jenkins credential named `codeqp-token` of type _Secret Text_ that is the GitHub Personal Access Token to be used that uploads CodeQL results.
+This repository has the folder structure such that it can be consumed as a Jenkins [Shared Library](https://www.jenkins.io/doc/book/pipeline/shared-libraries/). Additionally, it contains the needed groovy script to call the `New-CodeQLScan.ps1` PowerShell script. Below is an example of a Jenkins Pipeline script that could be used. It assumes that there is a Jenkins credential named `codeql-token` of type _Secret Text_ that is the GitHub Personal Access Token to be used that uploads CodeQL results.
 
 ```groovy
 @Library('codeql-anywhere') _
