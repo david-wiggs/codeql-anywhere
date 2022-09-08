@@ -422,7 +422,8 @@ function New-MobSFScan {
 
     try {
         Write-Host "Installing mobsfscan dependencies"
-        Invoke-Expression  "pip3 install mobsfscan"    
+        export PATH="/var/lib/jenkins/.local/bin:$PATH" # This could use cleanup
+        Invoke-Expression  "python3-pip install mobsfscan"    
     } catch {
         Write-Error "Unable to install required dependencies."
         break
