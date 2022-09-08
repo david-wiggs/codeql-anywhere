@@ -88,6 +88,27 @@ function Get-GitHubRepositorySupportedCodeQLLanguages {
     $returnLanguages
 }
 
+function Get-GitHubRepositorySupportedMobSFScanLanguages {
+    [CmdletBinding()]
+    Param
+    (
+        [Parameter(Mandatory = $False)] [string] $token,
+        [Parameter(Mandatory = $True)] [string] $owner,
+        [Parameter(Mandatory = $True)] [string] $repositoryName
+    )
+    
+    $splat = @{
+        repositoryName = $repositoryName
+        owner = $owner
+    }
+    if ($PSBoundParameters.ContainsKey('token')) {
+        $splat.Add('token', $token)
+    } 
+    [array]$repositoryLanguages = Get-GitHubRepositoryLanguages @splat
+    $supportedCodeQLLanguages = @('swift', 'kotlin', 'objective-c')
+    $repositoryLanguages | Where-Object {$_ -in $supportedCodeQLLanguages} | ForEach-Object {$_.ToLower()}
+}
+
 function Set-GZipFile([ValidateScript({Test-Path $_})][string]$File){
  
     $srcFile = Get-Item -Path $File
@@ -342,4 +363,92 @@ function New-CodeQLScan {
         if (-not $keepSarif) {Get-ChildItem -Path $sourceRoot -Filter "*-results.sarif" | Remove-Item -Force}
     }
     Remove-Item -Path (Split-Path $codeQLDatabaseDirectory -Parent) -Recurse -Force
+}
+
+function Get-LatestMobSFBundle {
+    $splat = @{
+        Method = 'Get' 
+        Uri = 'https://api.github.com/repos/MobSF/mobsfscan/releases/latest'
+        ContentType = 'application/json'
+    }
+    $mobSfLatestVersion = Invoke-RestMethod @splat
+    $activeTempRoot = (Get-PSDrive | Where-Object {$_.name -like 'Temp'}).Root
+
+    $oldLocation = (Get-Location).Path
+    Set-Location -Path $activeTempRoot
+    $splat = @{
+        Method = 'Get' 
+        Uri = "https://github.com/MobSF/mobsfscan/archive/refs/tags/$($mobSfLatestVersion.tag_name).tar.gz"
+        ContentType = 'application/zip'
+    }
+    Invoke-RestMethod @splat -OutFile "$activeTempRoot/mobSF-$($mobSfLatestVersion.tag_name).tar.gz"
+    tar -xzf "mobSF-$($mobSfLatestVersion.tag_name).tar.gz"
+    Set-Location -Path $oldLocation
+    Get-Item -Path "$activeTempRoot/mobsfscan-$($mobSfLatestVersion.tag_name)"
+}
+
+function New-MobSFScan {
+    [CmdletBinding()]
+    Param
+    (
+        [Parameter(Mandatory = $False)] [string] $token,
+        [Parameter(Mandatory = $False)] [switch] $keepSarif,
+        [Parameter(Mandatory = $False)] [switch] $preventUploadResultsToGitHubCodeScanning
+    )
+
+    $originUrl = git remote get-url origin
+    Write-Host "Origin URL is $originUrl."
+    $owner = $originUrl.Split('/')[-2]
+    Write-Host "Repository owner is $owner."
+    $repositoryName = $originUrl.Split('/')[-1].Split('.')[0]
+    Write-Host "Repository name is $repositoryName."
+    $sourceRoot = (Get-Location).Path
+
+    $splat = @{
+        owner = $owner
+        repositoryName = $repositoryName
+    }
+    if ($PSBoundParameters.ContainsKey('token')) {$splat.Add('token', $token)}
+    Write-Host "Detecting repository languages supported by mobsfscan."
+    [array]$repositoryMobSFScanSupportedLaguages = Get-GitHubRepositorySupportedMobSFScanLanguages @splat
+    if ($null -ne $repositoryMobSFScanSupportedLaguages) {
+        Write-Host "The following languages that are supported by CodeQL were detected: $($repositoryMobSFScanSupportedLaguages -join ', ')."
+        # $mobsfscanDirectory = Get-LatestMobSFBundle
+    } else {
+        Write-Warning "The repository, $owner/$repository does not contain any languages that are supported by mobsfscan."
+        break
+    }
+    $startedAt = (Get-date).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")
+
+    try {
+        Write-Host "Installing mobsfscan dependencies"
+        Invoke-Expression  "pip install mobsfscan"    
+    } catch {
+        Write-Error "Unable to install required dependencies."
+        break
+    }
+    
+    try {
+        Write-Host "Running mobsfscan..."
+        Invoke-Expression "python -m mobsfscan $sourceRoot --output mobsfscan.sarif --sarif"
+    } catch {
+        Write-Error "Unable to execute mobsfscan."
+        break
+    }
+
+    if (-not $preventUploadResultsToGitHubCodeScanning) {
+        $splat = @{
+            owner = $owner
+            repository = $repositoryName
+            ref = $(git symbolic-ref HEAD)
+            startedAt = $startedAt
+            commitSha = $(git rev-parse --verify HEAD)
+            pathToSarif = "mobsfscan.sarif"
+            checkoutUri = $sourceRoot
+            toolName = 'mobsfscan'
+        }
+        if ($PSBoundParameters.ContainsKey('token')) {$splat.Add('token', $token)}
+        Write-Host "Uploading SARIF results for $owner / $repositoryName for $language to GitHub Code Scanning."
+        Set-GitHubRepositorySarifResults @splat
+    }
 }
