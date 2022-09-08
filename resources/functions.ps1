@@ -442,6 +442,12 @@ function New-MobSFScan {
         break
     }
 
+    $scan = Get-Content -Path mobsfscan.sarif | ConvertFrom-Json -Depth 100
+    foreach ($artifact in $scan.runs.results.locations.physicalLocation.artifactLocation) {
+        $artifact.uri = $artifact.uri.Split("$sourceRoot/")[-1]
+    } 
+    $scan | ConvertTo-Json -Depth 100 | Out-File mobsfscan.sarif -Force
+
     if (-not $preventUploadResultsToGitHubCodeScanning) {
         $splat = @{
             owner = $owner
@@ -449,7 +455,7 @@ function New-MobSFScan {
             ref = $(git symbolic-ref HEAD)
             startedAt = $startedAt
             commitSha = $(git rev-parse --verify HEAD)
-            pathToSarif = "mobsfscan.sarif"
+            pathToSarif = "/Users/davidwiggs/Downloads/mobsfscan (1).sarif"
             checkoutUri = $sourceRoot
             toolName = 'mobsfscan'
         }
