@@ -422,7 +422,7 @@ function New-MobSFScan {
 
     try {
         Write-Host "Installing mobsfscan dependencies"
-        Invoke-Expression  "pip install mobsfscan"    
+        Invoke-Expression  "pip3 install mobsfscan"    
     } catch {
         Write-Error "Unable to install required dependencies."
         break
@@ -430,7 +430,7 @@ function New-MobSFScan {
     
     try {
         Write-Host "Running mobsfscan..."
-        Invoke-Expression "python -m mobsfscan $sourceRoot --output mobsfscan.sarif --sarif"
+        Invoke-Expression "python3 -m mobsfscan $sourceRoot --output mobsfscan.sarif --sarif"
     } catch {
         Write-Error "Unable to execute mobsfscan."
         break
