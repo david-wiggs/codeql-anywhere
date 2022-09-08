@@ -412,7 +412,7 @@ function New-MobSFScan {
     Write-Host "Detecting repository languages supported by mobsfscan."
     [array]$repositoryMobSFScanSupportedLaguages = Get-GitHubRepositorySupportedMobSFScanLanguages @splat
     if ($null -ne $repositoryMobSFScanSupportedLaguages) {
-        Write-Host "The following languages that are supported by CodeQL were detected: $($repositoryMobSFScanSupportedLaguages -join ', ')."
+        Write-Host "The following languages that are supported by mobsfscan were detected: $($repositoryMobSFScanSupportedLaguages -join ', ')."
         # $mobsfscanDirectory = Get-LatestMobSFBundle
     } else {
         Write-Warning "The repository, $owner/$repository does not contain any languages that are supported by mobsfscan."
@@ -421,8 +421,7 @@ function New-MobSFScan {
     $startedAt = (Get-date).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")
 
     try {
-        Write-Host "Installing mobsfscan dependencies"
-        # Invoke-Expression 'export PATH="/var/lib/jenkins/.local/bin:$PATH"' # This could use cleanup
+        Write-Host "Installing mobsfscan dependencies."
         $env:PATH
         Invoke-Expression "pip install mobsfscan --target /var/lib/jenkins/.local/bin --upgrade"    
     } catch {
