@@ -422,7 +422,6 @@ function New-MobSFScan {
 
     try {
         Write-Host "Installing mobsfscan dependencies."
-        $env:PATH
         Invoke-Expression "pip install mobsfscan --target /var/lib/jenkins/.local/bin --upgrade"    
     } catch {
         Write-Error "Unable to install required dependencies."
@@ -433,7 +432,6 @@ function New-MobSFScan {
     
     try {
         Write-Host "Running mobsfscan..."
-        Invoke-Expression "python3 -m mobsfscan"
         Invoke-Expression "python3 -m mobsfscan $sourceRoot --output mobsfscan.sarif --sarif"
     } catch {
         Write-Error "Unable to execute mobsfscan."
@@ -455,7 +453,7 @@ function New-MobSFScan {
             ref = $(git symbolic-ref HEAD)
             startedAt = $startedAt
             commitSha = $(git rev-parse --verify HEAD)
-            pathToSarif = "/Users/davidwiggs/Downloads/mobsfscan (1).sarif"
+            pathToSarif = 'mobsfscan.sarif'
             checkoutUri = $sourceRoot
             toolName = 'mobsfscan'
         }
