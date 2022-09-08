@@ -426,6 +426,8 @@ function New-MobSFScan {
         Invoke-Expression "python3-pip install mobsfscan"    
     } catch {
         Write-Error "Unable to install required dependencies."
+        Write-Error "$_"
+        $LASTEXITCODE = -1
         break
     }
     
@@ -434,6 +436,8 @@ function New-MobSFScan {
         Invoke-Expression "python3 -m mobsfscan $sourceRoot --output mobsfscan.sarif --sarif"
     } catch {
         Write-Error "Unable to execute mobsfscan."
+        Write-Error "$_"
+        $LASTEXITCODE = -1
         break
     }
 
