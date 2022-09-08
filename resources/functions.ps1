@@ -434,6 +434,7 @@ function New-MobSFScan {
     
     try {
         Write-Host "Running mobsfscan..."
+        Invoke-Expression "python3 -m mobsfscan"
         Invoke-Expression "python3 -m mobsfscan $sourceRoot --output mobsfscan.sarif --sarif"
     } catch {
         Write-Error "Unable to execute mobsfscan."
