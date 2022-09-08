@@ -440,6 +440,7 @@ function New-MobSFScan {
         break
     }
 
+    # Fix output of mobsfscan sarif output 
     $scan = Get-Content -Path mobsfscan.sarif | ConvertFrom-Json -Depth 100
     foreach ($artifact in $scan.runs.results.locations.physicalLocation.artifactLocation) {
         $artifact.uri = $artifact.uri.Split("$sourceRoot/")[-1]
