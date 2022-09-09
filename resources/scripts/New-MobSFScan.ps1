@@ -58,7 +58,7 @@ function Get-DotSourceFileFromGitHub {
 $splat = @{
     gitHubRepository = 'david-wiggs/codeql-anywhere'
     path = 'resources/functions.ps1'
-    branch = 'mobsfscan'
+    branch = 'main'
 }
 Get-DotSourceFileFromGitHub @splat
 
