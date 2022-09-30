@@ -330,7 +330,7 @@ function New-CodeQLScan {
         } else {
             Write-Host "Using build script at $pathToBuildScript to build all detected compiled lanuages."
             try {
-                Invoke-Expression -Command "$(Join-Path -Path $codeQlDirectory $codeQlCmd) database create --language=$($compiledLanguages -join ',') --source-root . --db-cluster $codeQLDatabaseDirectory --command=$pathToBuildScript"
+                Invoke-Expression -Command "$(Join-Path -Path $codeQlDirectory $codeQlCmd) database create --language=$($compiledLanguages -join ',') --source-root . --db-cluster $codeQLDatabaseDirectory --command='./$pathToBuildScript'"
             }
             catch {
                 Write-Error "Unable able to build compiled language project(s) and create a CodeQL database(s)."
