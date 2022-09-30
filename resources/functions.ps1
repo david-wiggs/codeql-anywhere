@@ -179,6 +179,7 @@ function New-CodeQLScan {
     [CmdletBinding()]
     Param
     (
+        [Parameter(Mandatory = $False)] [array] $languages,
         [Parameter(Mandatory = $False)] [string] $token,
         [Parameter(Mandatory = $False)] [string] $codeQLDatabaseDirectoryPath,
         [Parameter(Mandatory = $False)] [string] $pathToBuildScript,
@@ -220,8 +221,8 @@ function New-CodeQLScan {
         Write-Host "The following languages that are supported by CodeQL were detected: $($repositoryCodeQLSupportedLaguages -join ', ')."
         if (Test-Path $codeQLDatabaseDirectoryPath) {Remove-Item -Path $codeQLDatabaseDirectoryPath -Recurse -Force} 
         $codeQLDatabaseDirectory = (New-Item -Path $codeQLDatabaseDirectoryPath -ItemType Directory).FullName
-        New-Item -ItemType Directory -Path $codeQLDatabaseDirectoryPath inpterpretted
-        New-Item -ItemType Directory -Path $codeQLDatabaseDirectoryPath compiled
+        New-Item -ItemType Directory -Path "$codeQLDatabaseDirectoryPath/inpterpretted"
+        New-Item -ItemType Directory -Path "$codeQLDatabaseDirectoryPath/compiled"
     } else {
         Write-Warning "The repository, $owner/$repository does not contain any languages that are supported by CodeQL."
         break
