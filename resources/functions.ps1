@@ -22,6 +22,7 @@ function Get-LatestCodeQLBundle {
         ContentType = 'application/zip'
     }
     $activeTempRoot = (Get-PSDrive | Where-Object {$_.name -like 'Temp'}).Root
+    Remove-Item -Path "$activeTempRoot/codeql" -Recurse -Force
     Invoke-RestMethod @splat -OutFile "$activeTempRoot/$bundleName"
     $oldLocation = Get-Location
     Set-Location -Path $activeTempRoot
@@ -241,10 +242,7 @@ function New-CodeQLScan {
         if (-not $PSBoundParameters.ContainsKey('pathToBuildScript')) {
             foreach ($language in $compiledLanguages) {
                 if ($language -like 'cpp') {
-                    (Get-Location).Path
-                    "$sourceRoot/makefile"
-                    dir
-                    # if (Test-Path "$sourceRoot/makefile") {
+                    if (Test-Path "$sourceRoot/makefile") {
                         try {
                             Write-Host "Attempting to build C / C++ project with MAKEFILE."
                             Invoke-Expression -Command "$(Join-Path -Path $codeQlDirectory $codeQlCmd) database create --language=cpp --source-root . $codeQLDatabaseDirectory/cpp --command=make"
@@ -253,10 +251,10 @@ function New-CodeQLScan {
                             Write-Error "Unable able to autobuild C / C++ project and create a CodeQL database."
                             Write-Error "Consider supplying a path to a build script with the -pathToBuildScript parameter."
                         }
-                    # } else {
-                    #     Write-Error "Unable able to autobuild C / C++ project and create a CodeQL database."
-                    #     Write-Error "Detected C / C++ and did not find MAKEFILE present in the root directory of the repository."
-                    # }
+                    } else {
+                        Write-Error "Unable able to autobuild C / C++ project and create a CodeQL database."
+                        Write-Error "Detected C / C++ and did not find MAKEFILE present in the root directory of the repository."
+                    }
                 } elseif ($language -like 'csharp') {
                     if ((Test-Path "*.csproj") -or (Test-Path "*.sln")) {
                         try {
