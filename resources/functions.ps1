@@ -241,6 +241,9 @@ function New-CodeQLScan {
         if (-not $PSBoundParameters.ContainsKey('pathToBuildScript')) {
             foreach ($language in $compiledLanguages) {
                 if ($language -like 'cpp') {
+                    (Get-Location).Path
+                    "$sourceRoot/makefile"
+                    dir
                     if (Test-Path "$sourceRoot/makefile") {
                         try {
                             Write-Host "Attempting to build C / C++ project with MAKEFILE."
