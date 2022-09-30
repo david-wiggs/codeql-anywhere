@@ -241,7 +241,7 @@ function New-CodeQLScan {
         if (-not $PSBoundParameters.ContainsKey('pathToBuildScript')) {
             foreach ($language in $compiledLanguages) {
                 if ($language -like 'cpp') {
-                    if (Test-Path 'makefile') {
+                    if (Test-Path "$sourceRoot/makefile") {
                         try {
                             Write-Host "Attempting to build C / C++ project with MAKEFILE."
                             Invoke-Expression -Command "$(Join-Path -Path $codeQlDirectory $codeQlCmd) database create --language=cpp --source-root . $codeQLDatabaseDirectory/cpp --command=make"
@@ -363,103 +363,4 @@ function New-CodeQLScan {
         if (-not $keepSarif) {Get-ChildItem -Path $sourceRoot -Filter "*-results.sarif" | Remove-Item -Force}
     }
     Remove-Item -Path (Split-Path $codeQLDatabaseDirectory -Parent) -Recurse -Force
-}
-
-function Get-LatestMobSFBundle {
-    $splat = @{
-        Method = 'Get' 
-        Uri = 'https://api.github.com/repos/MobSF/mobsfscan/releases/latest'
-        ContentType = 'application/json'
-    }
-    $mobSfLatestVersion = Invoke-RestMethod @splat
-    $activeTempRoot = (Get-PSDrive | Where-Object {$_.name -like 'Temp'}).Root
-
-    $oldLocation = (Get-Location).Path
-    Set-Location -Path $activeTempRoot
-    $splat = @{
-        Method = 'Get' 
-        Uri = "https://github.com/MobSF/mobsfscan/archive/refs/tags/$($mobSfLatestVersion.tag_name).tar.gz"
-        ContentType = 'application/zip'
-    }
-    Invoke-RestMethod @splat -OutFile "$activeTempRoot/mobSF-$($mobSfLatestVersion.tag_name).tar.gz"
-    tar -xzf "mobSF-$($mobSfLatestVersion.tag_name).tar.gz"
-    Set-Location -Path $oldLocation
-    Get-Item -Path "$activeTempRoot/mobsfscan-$($mobSfLatestVersion.tag_name)"
-}
-
-function New-MobSFScan {
-    [CmdletBinding()]
-    Param
-    (
-        [Parameter(Mandatory = $False)] [string] $token,
-        [Parameter(Mandatory = $False)] [switch] $keepSarif,
-        [Parameter(Mandatory = $False)] [switch] $preventUploadResultsToGitHubCodeScanning
-    )
-
-    $originUrl = git remote get-url origin
-    Write-Host "Origin URL is $originUrl."
-    $owner = $originUrl.Split('/')[-2]
-    Write-Host "Repository owner is $owner."
-    $repositoryName = $originUrl.Split('/')[-1].Split('.')[0]
-    Write-Host "Repository name is $repositoryName."
-    $sourceRoot = (Get-Location).Path
-
-    $splat = @{
-        owner = $owner
-        repositoryName = $repositoryName
-    }
-    if ($PSBoundParameters.ContainsKey('token')) {$splat.Add('token', $token)}
-    Write-Host "Detecting repository languages supported by mobsfscan."
-    [array]$repositoryMobSFScanSupportedLaguages = Get-GitHubRepositorySupportedMobSFScanLanguages @splat
-    if ($null -ne $repositoryMobSFScanSupportedLaguages) {
-        Write-Host "The following languages that are supported by mobsfscan were detected: $($repositoryMobSFScanSupportedLaguages -join ', ')."
-        # $mobsfscanDirectory = Get-LatestMobSFBundle
-    } else {
-        Write-Warning "The repository, $owner/$repository does not contain any languages that are supported by mobsfscan."
-        break
-    }
-    $startedAt = (Get-date).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")
-
-    try {
-        Write-Host "Installing mobsfscan dependencies."
-        Invoke-Expression "pip install mobsfscan --target /var/lib/jenkins/.local/bin --upgrade"    
-    } catch {
-        Write-Error "Unable to install required dependencies."
-        Write-Error "$_"
-        $LASTEXITCODE = -1
-        break
-    }
-    
-    try {
-        Write-Host "Running mobsfscan..."
-        Invoke-Expression "python3 -m mobsfscan $sourceRoot --output mobsfscan.sarif --sarif"
-    } catch {
-        Write-Error "Unable to execute mobsfscan."
-        Write-Error "$_"
-        $LASTEXITCODE = -1
-        break
-    }
-
-    # Fix output of mobsfscan sarif output 
-    $scan = Get-Content -Path mobsfscan.sarif | ConvertFrom-Json -Depth 100
-    foreach ($artifact in $scan.runs.results.locations.physicalLocation.artifactLocation) {
-        $artifact.uri = $artifact.uri.Split("$sourceRoot/")[-1]
-    } 
-    $scan | ConvertTo-Json -Depth 100 | Out-File mobsfscan.sarif -Force
-
-    if (-not $preventUploadResultsToGitHubCodeScanning) {
-        $splat = @{
-            owner = $owner
-            repository = $repositoryName
-            ref = $(git symbolic-ref HEAD)
-            startedAt = $startedAt
-            commitSha = $(git rev-parse --verify HEAD)
-            pathToSarif = 'mobsfscan.sarif'
-            checkoutUri = $sourceRoot
-            toolName = 'mobsfscan'
-        }
-        if ($PSBoundParameters.ContainsKey('token')) {$splat.Add('token', $token)}
-        Write-Host "Uploading SARIF results for $owner / $repositoryName for $language to GitHub Code Scanning."
-        Set-GitHubRepositorySarifResults @splat
-    }
 }
