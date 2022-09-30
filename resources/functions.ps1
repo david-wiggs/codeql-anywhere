@@ -220,6 +220,8 @@ function New-CodeQLScan {
         Write-Host "The following languages that are supported by CodeQL were detected: $($repositoryCodeQLSupportedLaguages -join ', ')."
         if (Test-Path $codeQLDatabaseDirectoryPath) {Remove-Item -Path $codeQLDatabaseDirectoryPath -Recurse -Force} 
         $codeQLDatabaseDirectory = (New-Item -Path $codeQLDatabaseDirectoryPath -ItemType Directory).FullName
+        New-Item -ItemType Directory -Path $codeQLDatabaseDirectoryPath inpterpretted
+        New-Item -ItemType Directory -Path $codeQLDatabaseDirectoryPath compiled
     } else {
         Write-Warning "The repository, $owner/$repository does not contain any languages that are supported by CodeQL."
         break
@@ -230,9 +232,9 @@ function New-CodeQLScan {
     if ($null -ne $nonCompiledLanguages) {
         Write-Host "Creating CodeQL databases for non-compiled languages."
         if ($nonCompiledLanguages.Count -gt 1) {
-            Invoke-Expression -Command "$(Join-Path -Path $codeQlDirectory $codeQlCmd) database create --language=$($nonCompiledLanguages -join ',') --source-root . --db-cluster $codeQLDatabaseDirectory"
+            Invoke-Expression -Command "$(Join-Path -Path $codeQlDirectory $codeQlCmd) database create --language=$($nonCompiledLanguages -join ',') --source-root . --db-cluster $codeQLDatabaseDirectory/inpterpretted"
         } elseif ($nonCompiledLanguages.Count -eq 1) {
-            Invoke-Expression -Command "$(Join-Path -Path $codeQlDirectory $codeQlCmd) database create --language=$($nonCompiledLanguages[0]) --source-root . $codeQLDatabaseDirectory/$($nonCompiledLanguages[0])"
+            Invoke-Expression -Command "$(Join-Path -Path $codeQlDirectory $codeQlCmd) database create --language=$($nonCompiledLanguages[0]) --source-root . $codeQLDatabaseDirectory/inpterpretted/$($nonCompiledLanguages[0])"
         }
     }
     
@@ -330,7 +332,7 @@ function New-CodeQLScan {
         } else {
             Write-Host "Using build script at $pathToBuildScript to build all detected compiled lanuages."
             try {
-                Invoke-Expression -Command "$(Join-Path -Path $codeQlDirectory $codeQlCmd) database create --language=$($compiledLanguages -join ',') --source-root . $codeQLDatabaseDirectory --command='./$pathToBuildScript'"
+                Invoke-Expression -Command "$(Join-Path -Path $codeQlDirectory $codeQlCmd) database create --language=$($compiledLanguages -join ',') --source-root . $codeQLDatabaseDirectory/compiled --command='./$pathToBuildScript'"
             }
             catch {
                 Write-Error "Unable able to build compiled language project(s) and create a CodeQL database(s)."
@@ -339,7 +341,8 @@ function New-CodeQLScan {
     }
     
     Write-Host "Analyzing CodeQL databases."
-    [array]$codeQLDatabases = Get-ChildItem -Path $codeQLDatabaseDirectory -Directory -Exclude log, working
+    [array]$codeQLDatabases = Get-ChildItem -Path "$codeQLDatabaseDirectory/inpterpretted" -Directory -Exclude log, working
+    [array]$codeQLDatabases += Get-ChildItem -Path "$codeQLDatabaseDirectory/compiled" -Directory -Exclude log, working
     foreach ($database in $codeQLDatabases) {
         $language = $database.Name
         $queries = Get-ChildItem -Recurse -Filter "*$language-$querySuite.qls"
