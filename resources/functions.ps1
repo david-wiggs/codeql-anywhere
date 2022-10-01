@@ -247,7 +247,7 @@ function New-CodeQLScan {
                 if ($language -like 'cpp') {
                     try {
                         Write-Host "Attempting to build C / C++ project with Makefile."
-                        Invoke-Expression -Command "$(Join-Path -Path $codeQlDirectory $codeQlCmd) database create --language=cpp --source-root . $codeQLDatabaseDirectory/cpp --command=make"
+                        Invoke-Expression -Command "$(Join-Path -Path $codeQlDirectory $codeQlCmd) database create --language=cpp --source-root . $codeQLDatabaseDirectory/compiled/cpp --command=make"
                     }
                     catch {
                         Write-Error "Unable able to autobuild C / C++ project and create a CodeQL database."
