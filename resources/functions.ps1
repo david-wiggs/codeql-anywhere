@@ -245,18 +245,13 @@ function New-CodeQLScan {
         if (-not $PSBoundParameters.ContainsKey('pathToBuildScript')) {
             foreach ($language in $compiledLanguages) {
                 if ($language -like 'cpp') {
-                    if (Test-Path "$sourceRoot/makefile") {
-                        try {
-                            Write-Host "Attempting to build C / C++ project with MAKEFILE."
-                            Invoke-Expression -Command "$(Join-Path -Path $codeQlDirectory $codeQlCmd) database create --language=cpp --source-root . $codeQLDatabaseDirectory/cpp --command=make"
-                        }
-                        catch {
-                            Write-Error "Unable able to autobuild C / C++ project and create a CodeQL database."
-                            Write-Error "Consider supplying a path to a build script with the -pathToBuildScript parameter."
-                        }
-                    } else {
+                    try {
+                        Write-Host "Attempting to build C / C++ project with Makefile."
+                        Invoke-Expression -Command "$(Join-Path -Path $codeQlDirectory $codeQlCmd) database create --language=cpp --source-root . $codeQLDatabaseDirectory/cpp --command=make"
+                    }
+                    catch {
                         Write-Error "Unable able to autobuild C / C++ project and create a CodeQL database."
-                        Write-Error "Detected C / C++ and did not find MAKEFILE present in the root directory of the repository."
+                        Write-Error "Consider supplying a path to a build script with the -pathToBuildScript parameter."
                     }
                 } elseif ($language -like 'csharp') {
                     if ((Test-Path "*.csproj") -or (Test-Path "*.sln")) {
