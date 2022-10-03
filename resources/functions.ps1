@@ -194,7 +194,7 @@ function New-CodeQLScan {
     Write-Host "Repository owner is $owner."
     $repositoryName = $originUrl.Split('/')[-1].Split('.')[0]
     Write-Host "Repository name is $repositoryName."
-#     $codeQLDatabaseDirectoryPath = 'codeql/databases'
+    $codeQLDatabaseDirectoryPath = 'codeql/databases'
     Write-Host "CodeQL database(s) directory is $codeQLDatabaseDirectoryPath."
     Write-Host "Query suite it $querySuite."
     if ($PSVersionTable.OS -like "Windows*") {$codeQlCmd = 'codeql.exe'} else {$codeQlCmd = 'codeql'}
