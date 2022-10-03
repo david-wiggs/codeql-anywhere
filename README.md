@@ -106,40 +106,26 @@ New-CodeQLScan -token $env:GITHUB_TOKEN -querySuite 'security-and-quality'
 ## Azure DevOps
 Using the [PowerShell task](https://docs.microsoft.com/en-us/azure/devops/pipelines/tasks/utility/powershell?view=azure-devops) in Azure DevOps, we can call the `New-CodeQLScan.ps1` script. Note that the `GITHUB_TOKEN` environment variable must be set to pass in the secret value defined in the `$(GITHUB_TOKEN)` pipeline variable.
 
-The duplicate `checkout` step is due to the fact that the default checkout leaves the working directory in state of a detached `HEAD`. Because the functions leverage the output of `git symbolic-ref HEAD`, the second checkout must be executed, as well as changes fetched.
-
 ```yaml
-trigger:
-  branches:
-    include:
-    - refs/heads/main
-resources:
-  repositories:
-  - repository: self
-    type: git
-    ref: refs/heads/main
 jobs:
-- job: Job_1
+- job: Job_1 
   displayName: CodeQL Scan
   pool:
     name: Default
   steps:
-  - checkout: self
-    clean: true
-    fetchTags: false
   - task: PowerShell@2
-    displayName: 'Checkout branch'
+    displayName: 'Checkout codeql-anywhere'
     inputs:
       targetType: inline
       script: |
-        git checkout $(Build.SourceBranchName)
-        git pull
+        if (Test-Path './.git/modules/codeql-anywhere') {rm -rf './.git/modules/codeql-anywhere'}
+        git submodule add https://github.com/david-wiggs/codeql-anywhere.git
       pwsh: true
   - task: PowerShell@2
     displayName: 'Run New-CodeQLScan.ps1'
     inputs:
       targetType: filePath
-      filePath: './New-CodeQLScan.ps1'
+      filePath: 'codeql-anywhere/resources/scripts/New-CodeQLScan.ps1'
       pwsh: true
     env:
       GITHUB_TOKEN: $(GITHUB_TOKEN)
