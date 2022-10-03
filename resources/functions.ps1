@@ -344,13 +344,14 @@ function New-CodeQLScan {
         Write-Host "Analyzing $language database."
         Invoke-Expression -Command "$(Join-Path -Path $codeQlDirectory $codeQlCmd) database analyze $($database.FullName) $($queries.FullName) --format=sarifv2.1.0 --output=$language-results.sarif --sarif-category=$language"
         if (-not $preventUploadResultsToGitHubCodeScanning) {
-            if ($null -ne $env:Build.SourceBranch) {$ref = $env:Build.SourceBranch} else {$ref = $(git rev-parse --verify HEAD)}
+            if ($null -ne $env:Build.SourceBranch) {$ref = $env:Build.SourceBranch} else {$ref = $(git symbolic-ref HEAD)}
+            if ($null -ne $env:Build.SourceVersion) {$sha = $env:Build.SourceVersion} else {$sha = $(git rev-parse --verify HEAD)}
             $splat = @{
                 owner = $owner
                 repository = $repositoryName
                 ref = $ref
                 startedAt = $startedAt
-                commitSha = $(git rev-parse --verify HEAD)
+                commitSha = $sha
                 pathToSarif = "$language-results.sarif"
                 checkoutUri = $sourceRoot
                 toolName = 'CodeQL'
