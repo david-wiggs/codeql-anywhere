@@ -7,16 +7,17 @@ String call(Map params) {
         codeQLDatabaseDirectoryPath = 'codeql/databases'
     }
     
-    if (params['pathToBuildScript']) {
-        pathToBuildScript = params['pathToBuildScript']
-    } else {
-        pathToBuildScript = ''
-    }
-    
     if (params['querySuite']) {
         querySuite = params['querySuite']
     } else {
         querySuite = 'code-scanning'
     }
-    pwsh(returnStdout: true, script: "./New-CodeQLScan.ps1 -token \$env:GITHUB_TOKEN -codeQLDatabaseDirectoryPath ${codeQLDatabaseDirectoryPath} -pathToBuildScript ${pathToBuildScript} -querySuite ${querySuite}")
+
+    if (params['pathToBuildScript']) {
+        pathToBuildScript = params['pathToBuildScript']
+        pwsh(returnStdout: true, script: "./New-CodeQLScan.ps1 -token \$env:GITHUB_TOKEN -codeQLDatabaseDirectoryPath ${codeQLDatabaseDirectoryPath} -pathToBuildScript ${pathToBuildScript} -querySuite ${querySuite}")
+
+    } else {
+        pwsh(returnStdout: true, script: "./New-CodeQLScan.ps1 -token \$env:GITHUB_TOKEN -codeQLDatabaseDirectoryPath ${codeQLDatabaseDirectoryPath} -querySuite ${querySuite}")
+    }
 }
