@@ -185,7 +185,7 @@ function New-CodeQLScan {
         [Parameter(Mandatory = $False)] [string] $pathToBuildScript,
         [Parameter(Mandatory = $False)] [switch] $keepSarif,
         [Parameter(Mandatory = $False)] [switch] $preventUploadResultsToGitHubCodeScanning,
-        [Parameter(Mandatory = $False)] [string] [ValidateSet('code-scanning', 'security-extended', 'security-and-quality')] $querySuite
+        [Parameter(Mandatory = $False)] [string] [ValidateSet('code-scanning', 'security-extended', 'security-and-quality')] $querySuite = 'code-scanning'
     )
     
     $originUrl = git remote get-url origin
@@ -195,7 +195,6 @@ function New-CodeQLScan {
     $repositoryName = $originUrl.Split('/')[-1].Split('.')[0]
     Write-Host "Repository name is $repositoryName."
     Write-Host "CodeQL database(s) directory is $codeQLDatabaseDirectoryPath."
-    if (-not $PSBoundParameters.ContainsKey('querySuite')) {$querySuite = 'code-scanning'}
     Write-Host "Query suite it $querySuite."
     if ($PSVersionTable.OS -like "Windows*") {$codeQlCmd = 'codeql.exe'} else {$codeQlCmd = 'codeql'}
     Write-Host "CodeQL executable is $codeqlCmd."
