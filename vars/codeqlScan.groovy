@@ -18,9 +18,5 @@ String call(Map params) {
     } else {
         querySuite = 'code-scanning'
     }
-
-    env.codeQLDatabaseDirectoryPath = codeQLDatabaseDirectoryPath
-    env.pathToBuildScript = pathToBuildScript
-    env.querySuite = querySuite
-    pwsh(returnStdout: true, script: './New-CodeQLScan.ps1 -token $env:GITHUB_TOKEN -codeQLDatabaseDirectoryPath $env:codeQLDatabaseDirectoryPath -pathToBuildScript $env:pathToBuildScript -querySuite $env:querySuite')
+    pwsh(returnStdout: true, script: "./New-CodeQLScan.ps1 -token \$env:GITHUB_TOKEN -codeQLDatabaseDirectoryPath ${codeQLDatabaseDirectoryPath} -pathToBuildScript ${pathToBuildScript} -querySuite ${querySuite}")
 }
