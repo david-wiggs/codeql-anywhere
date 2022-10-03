@@ -256,7 +256,7 @@ function New-CodeQLScan {
                     if ((Test-Path "*.csproj") -or (Test-Path "*.sln")) {
                         try {
                             Write-Host "Attempting to build C# project with dotnet build."
-                            Invoke-Expression -Command "$(Join-Path -Path $codeQlDirectory $codeQlCmd) database create --language=csharp --source-root . $codeQLDatabaseDirectory/csharp --command='dotnet build /p:UseSharedCompilation=false /t:rebuild'"
+                            Invoke-Expression -Command "$(Join-Path -Path $codeQlDirectory $codeQlCmd) database create --language=csharp --source-root . $codeQLDatabaseDirectory/compiled/csharp --command='dotnet build /p:UseSharedCompilation=false /t:rebuild'"
                         }
                         catch {
                             Write-Error "Unable able to autobuild C# project and create a CodeQL database."
@@ -279,7 +279,7 @@ function New-CodeQLScan {
                         Write-Host "Attempting to build Java project with Maven."
                         if (Test-Path $pomFile.FullName) {
                             try {
-                                Invoke-Expression -Command "$(Join-Path -Path $codeQlDirectory $codeQlCmd) database create --language=java --source-root . $codeQLDatabaseDirectory/java --command='mvn clean --file $($pomFile.FullName) install -DskipTests'"
+                                Invoke-Expression -Command "$(Join-Path -Path $codeQlDirectory $codeQlCmd) database create --language=java --source-root . $codeQLDatabaseDirectory/compiled/java --command='mvn clean --file $($pomFile.FullName) install -DskipTests'"
                             }
                             catch {
                                 Write-Error "Unable able to autobuild Java project."
@@ -294,7 +294,7 @@ function New-CodeQLScan {
                         Write-Host "Attempting to build Java project with Gradle."
                         try {
                             # need to set working directory?
-                            Invoke-Expression -Command "$(Join-Path -Path $codeQlDirectory $codeQlCmd) database create --language=java --source-root . $codeQLDatabaseDirectory/java --command='gradle --no-daemon clean test'"
+                            Invoke-Expression -Command "$(Join-Path -Path $codeQlDirectory $codeQlCmd) database create --language=java --source-root . $codeQLDatabaseDirectory/compiled/java --command='gradle --no-daemon clean test'"
                         }
                         catch {
                             Write-Error "Unable able to autobuild Java project and create a CodeQL database."
@@ -304,7 +304,7 @@ function New-CodeQLScan {
                         Write-Host "Detected Ant build files."
                         Write-Host "Attempting to build Java project with Ant."
                         try {
-                            Invoke-Expression -Command "$(Join-Path -Path $codeQlDirectory $codeQlCmd) database create --language=java --source-root . $codeQLDatabaseDirectory/java --command='ant -f $antBuildFile'"
+                            Invoke-Expression -Command "$(Join-Path -Path $codeQlDirectory $codeQlCmd) database create --language=java --source-root . $codeQLDatabaseDirectory/compiled/java --command='ant -f $antBuildFile'"
                         }
                         catch {
                             Write-Error "Unable able to autobuild Java project and create a CodeQL database."
@@ -316,7 +316,7 @@ function New-CodeQLScan {
                     try {
                         $goSourceRoot = Split-Path (Get-ChildItem -Recurse -Include '*.go' | Select-Object -First 1) -Parent
                         $env:CODEQL_EXTRACTOR_GO_BUILD_TRACING = 'on'
-                        Invoke-Expression -Command "$(Join-Path -Path $codeQlDirectory $codeQlCmd) database create --language=go --source-root $sourceRoot $codeQLDatabaseDirectory/go --working-dir $goSourceRoot"
+                        Invoke-Expression -Command "$(Join-Path -Path $codeQlDirectory $codeQlCmd) database create --language=go --source-root $sourceRoot $codeQLDatabaseDirectory/compiled/go --working-dir $goSourceRoot"
                     }
                     catch {
                         Write-Error "Unable able to autobuild Go project and create a CodeQL database."
