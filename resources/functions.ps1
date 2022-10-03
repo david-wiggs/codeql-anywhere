@@ -181,7 +181,7 @@ function New-CodeQLScan {
     (
         [Parameter(Mandatory = $False)] [array] $languages,
         [Parameter(Mandatory = $False)] [string] $token,
-        [Parameter(Mandatory = $False)] [string] $codeQLDatabaseDirectoryPath = 'codeql/databases',
+        # [Parameter(Mandatory = $False)] [string] $codeQLDatabaseDirectoryPath = 'codeql/databases',
         [Parameter(Mandatory = $False)] [string] $pathToBuildScript,
         [Parameter(Mandatory = $False)] [switch] $keepSarif,
         [Parameter(Mandatory = $False)] [switch] $preventUploadResultsToGitHubCodeScanning,
@@ -194,6 +194,7 @@ function New-CodeQLScan {
     Write-Host "Repository owner is $owner."
     $repositoryName = $originUrl.Split('/')[-1].Split('.')[0]
     Write-Host "Repository name is $repositoryName."
+    $codeQLDatabaseDirectoryPath = 'codeql/databases'
     Write-Host "CodeQL database(s) directory is $codeQLDatabaseDirectoryPath."
     Write-Host "Query suite it $querySuite."
     if ($PSVersionTable.OS -like "Windows*") {$codeQlCmd = 'codeql.exe'} else {$codeQlCmd = 'codeql'}
