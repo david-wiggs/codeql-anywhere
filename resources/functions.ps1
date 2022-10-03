@@ -348,9 +348,9 @@ function New-CodeQLScan {
             $splat = @{
                 owner = $owner
                 repository = $repositoryName
-                ref = $(git symbolic-ref HEAD)
+                ref = $ref
                 startedAt = $startedAt
-                commitSha = $ref
+                commitSha = $(git rev-parse --verify HEAD)
                 pathToSarif = "$language-results.sarif"
                 checkoutUri = $sourceRoot
                 toolName = 'CodeQL'
