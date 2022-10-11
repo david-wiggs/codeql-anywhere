@@ -1,7 +1,7 @@
 [CmdletBinding()]
 Param
 (
-    [Parameter(Mandatory = $False)] [string] $token,
+    [Parameter(Mandatory = $False)] [string] $token
 )
 
 function Get-GitHubRepositoryFileContent {
