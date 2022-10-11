@@ -365,3 +365,35 @@ function New-CodeQLScan {
     }
     Remove-Item -Path (Split-Path $codeQLDatabaseDirectory -Parent) -Recurse -Force
 }
+
+function Set-GitHubRepositoryDispatch {
+    [CmdletBinding()]
+    Param
+    (
+        [Parameter(Mandatory = $False)] [string] $token,
+        [Parameter(Mandatory = $True)] [string] $owner,
+        [Parameter(Mandatory = $True)] [string] $repositoryName,
+        [Parameter(Mandatory = $True)] [string] $branch
+    )
+
+    $uri = "https://api.github.com/repos/$owner/$repositoryName/dispatches"
+    $body = [PSCustomObject]@{
+        event_type = 'compliance-check'
+        client_payload = @{
+            head_branch = $branch
+        }
+    } | ConvertTo-Json -Depth 10
+   
+    $splat = @{
+        Method = 'Post'
+        Uri = $uri
+        ContentType = 'application/json'
+        Body = $body
+
+    }
+    if ($PSBoundParameters.ContainsKey('token')) {
+        $headers = @{'Authorization' = "token $token"}
+        $splat.Add('Headers', $headers)
+    } 
+    Invoke-RestMethod @splat
+}
