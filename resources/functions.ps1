@@ -22,7 +22,7 @@ function Get-LatestCodeQLBundle {
         ContentType = 'application/zip'
     }
     $activeTempRoot = (Get-PSDrive | Where-Object {$_.name -like 'Temp'}).Root
-    Remove-Item -Path "$activeTempRoot/codeql" -Recurse -Force
+    if (Test-Path -Path "$activeTempRoot/codeql") {Remove-Item -Path "$activeTempRoot/codeql" -Recurse -Force}
     Invoke-RestMethod @splat -OutFile "$activeTempRoot/$bundleName"
     $oldLocation = Get-Location
     Set-Location -Path $activeTempRoot
