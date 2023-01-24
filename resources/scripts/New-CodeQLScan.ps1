@@ -76,6 +76,7 @@ $splat = @{}
 if ($null -ne $($env:GITHUB_TOKEN)) {$splat.Add('token', $env:GITHUB_TOKEN)} elseif ($PSBoundParameters.ContainsKey('token')) {$splat.Add('token', $token)}
 if ($null -ne $codeQLDatabaseDirectoryPath) {$splat.Add('codeQLDatabaseDirectoryPath', $codeQLDatabaseDirectoryPath)}
 if ($pathToBuildScript -ne '') {$splat.Add('pathToBuildScript', $pathToBuildScript)}
+if ($buildCmd -ne '') {$splat.Add('buildCmd', $buildCmd)}
 if ($PSBoundParameters.ContainsKey('querySuite')) {$splat.Add('querySuite', $querySuite)}
 
 New-CodeQLScan @splat
