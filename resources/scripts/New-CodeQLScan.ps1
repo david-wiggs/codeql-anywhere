@@ -3,6 +3,7 @@ Param
 (
     [Parameter(Mandatory = $False)] [string] $token,
     [Parameter(Mandatory = $False)] [string] $codeQLDatabaseDirectoryPath,
+    [Parameter(Mandatory = $False)] [string] $buildCmd,
     [Parameter(Mandatory = $False)] [string] $pathToBuildScript,
     [Parameter(Mandatory = $False)] [string] [ValidateSet('code-scanning', 'security-extended', 'security-and-quality')] $querySuite
 )
