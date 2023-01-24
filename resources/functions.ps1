@@ -197,7 +197,7 @@ function New-CodeQLScan {
     $codeQLDatabaseDirectoryPath = 'codeql/databases'
     Write-Host "CodeQL database(s) directory is $codeQLDatabaseDirectoryPath."
     Write-Host "Query suite it $querySuite."
-    if ($PSVersionTable.OS -like "Windows*") {$codeQlCmd = 'codeql.exe'} else {$codeQlCmd = 'codeql'}
+    if ($PSVersionTable.OS -like "*windows*") {$codeQlCmd = 'codeql.exe'} else {$codeQlCmd = 'codeql'}
     Write-Host "CodeQL executable is $codeqlCmd."
     if ($null -eq $env:CODEQL_LOCATION) {
         Write-Host "Getting latest CodeQL bundle."
