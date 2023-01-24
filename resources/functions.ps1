@@ -183,6 +183,7 @@ function New-CodeQLScan {
         [Parameter(Mandatory = $False)] [string] $token,
         [Parameter(Mandatory = $False)] [string] $codeQLDatabaseDirectoryPath = 'codeql/databases',
         [Parameter(Mandatory = $False)] [string] $pathToBuildScript,
+        [Parameter(Mandatory = $False)] [string] $buildCmd,
         [Parameter(Mandatory = $False)] [switch] $keepSarif,
         [Parameter(Mandatory = $False)] [switch] $preventUploadResultsToGitHubCodeScanning,
         [Parameter(Mandatory = $False)] [string] [ValidateSet('code-scanning', 'security-extended', 'security-and-quality')] $querySuite = 'code-scanning'
@@ -241,7 +242,23 @@ function New-CodeQLScan {
     [array]$compiledLanguages = $repositoryCodeQLSupportedLaguages | Where-Object {$_ -like 'cpp' -or $_ -like 'java' -or $_ -like 'csharp' -or $_ -like 'go'}
     if ($null -ne $compiledLanguages) {
         Write-Host "Creating CodeQL databases for compiled languages."        
-        if (-not $PSBoundParameters.ContainsKey('pathToBuildScript')) {
+        if ($PSBoundParameters.ContainsKey('pathToBuildScript')) {
+            Write-Host "Using build script at $pathToBuildScript to build all detected compiled lanuages."
+            try {
+                Invoke-Expression -Command "$(Join-Path -Path $codeQlDirectory $codeQlCmd) database create --language=$($compiledLanguages -join ',') --source-root . $codeQLDatabaseDirectory/compiled --command='./$pathToBuildScript'"
+            }
+            catch {
+                Write-Error "Unable able to build compiled language project(s) and create a CodeQL database(s)."
+            }
+        } elseif ($PSBoundParameters.ContainsKey('buildCmd')) {
+            Write-Host "Using build cmd '$pathToBuildScript' to build all detected compiled lanuages."
+            try {
+                Invoke-Expression -Command "$(Join-Path -Path $codeQlDirectory $codeQlCmd) database create --language=$($compiledLanguages -join ',') --source-root . $codeQLDatabaseDirectory/compiled --command='$buildCmd'"
+            }
+            catch {
+                Write-Error "Unable able to build compiled language project(s) and create a CodeQL database(s)."
+            }
+        } else {
             foreach ($language in $compiledLanguages) {
                 if ($language -like 'cpp') {
                     try {
@@ -324,15 +341,7 @@ function New-CodeQLScan {
                     }
                 } 
             }
-        } else {
-            Write-Host "Using build script at $pathToBuildScript to build all detected compiled lanuages."
-            try {
-                Invoke-Expression -Command "$(Join-Path -Path $codeQlDirectory $codeQlCmd) database create --language=$($compiledLanguages -join ',') --source-root . $codeQLDatabaseDirectory/compiled --command='./$pathToBuildScript'"
-            }
-            catch {
-                Write-Error "Unable able to build compiled language project(s) and create a CodeQL database(s)."
-            }
-        } 
+        }
     }
     
     Write-Host "Analyzing CodeQL databases."
