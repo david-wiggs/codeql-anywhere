@@ -346,7 +346,7 @@ function New-CodeQLScan {
     
     Write-Host "Analyzing CodeQL databases."
     [array]$codeQLDatabases = Get-ChildItem -Path "$codeQLDatabaseDirectory/inpterpretted" -Directory -Exclude log, working
-    [array]$codeQLDatabases += Get-ChildItem -Path "$codeQLDatabaseDirectory/compiled" -Directory -Exclude log, working
+    [array]$codeQLDatabases += Get-Item -Path "$codeQLDatabaseDirectory/compiled"
     foreach ($database in $codeQLDatabases) {
         $language = $database.Name
         $queries = Get-ChildItem -Recurse -Filter "*$language-$querySuite.qls"
