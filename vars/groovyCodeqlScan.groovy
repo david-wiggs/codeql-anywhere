@@ -252,7 +252,7 @@ def processRef(String suppliedRef) {
     def ref
 
     if (suppliedRef) {
-        if (suppliedRef ==~ /(^ref\/(heads|tags)\/.*)|(^refs\/pull\/\d+\/(merge|head))/) {
+        if (suppliedRef ==~ /(^refs\/(heads|tags)\/.*)|(^refs\/pull\/\d+\/(merge|head))/) {
             ref = suppliedRef
         } else {
             logAndRaiseError("Supplied ref '${suppliedRef}' does not match expected formats:\n'refs/heads/<branch name>'\n'refs/tags/<tag name>'\n'refs/pull/<number>/merge'\n'refs/pull/<number>/head'")
