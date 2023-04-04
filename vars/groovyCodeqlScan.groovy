@@ -238,3 +238,12 @@ def uploadScanResults(Map params) {
         }
     }
 }
+
+def required(Map params, String paramName) {
+    def val = params["${paramName}"]
+    if (val == null || val == "") {
+        logAndRaiseError "Required parameter: ${paramName} not provided or was empty."
+    }
+
+    return val
+}
