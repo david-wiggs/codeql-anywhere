@@ -1,7 +1,7 @@
 def call (Map params, Closure closure = null) {
     def credentialId = params['credentialId']
     def repoUrl = params['repoUrl']
-    def languages = processLanguages(required(params['languages']))
+    def languages = processLanguages(params['languages'])
     def ref = processRef(params['ref'])
     def ram = defaultIfNullOrEmtpy(params['ram'] as Integer, 4000)
     def threads = defaultIfNullOrEmtpy(params['threads'] as Integer, 1)
@@ -237,13 +237,4 @@ def uploadScanResults(Map params) {
             """)
         }
     }
-}
-
-def required(Map params, String paramName) {
-    def val = params["${paramName}"]
-    if (val == null || val == "") {
-        logAndRaiseError "Required parameter: ${paramName} not provided or was empty."
-    }
-
-    return val
 }
