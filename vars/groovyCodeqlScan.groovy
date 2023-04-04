@@ -276,7 +276,6 @@ def processRef(String suppliedRef) {
 }
 
 def logAndRaiseError(message, String ... parameters) {
-    logError(message, parameters)
     def messageParameters = ['ERROR']
     messageParameters.addAll(parameters)
     def sanitizedInput = messageParameters.collect { it.replaceAll("%","%%") }
