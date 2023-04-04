@@ -26,9 +26,9 @@ def call (Map params, Closure closure = null) {
     def databasesCompiled = "${WORKSPACE}/${tmp}/databases-compiled"
     def databasesInterpreted = "${WORKSPACE}/${tmp}/databases-interpreted"
     def supportedInterpretedLanguages = getInterpretedLanguages()
-    def detectedInterpretedLanguages = defaultIfNullOrEmtpy(supportedInterpretedLanguages.intersect(languages), [])
+    def detectedInterpretedLanguages = supportedInterpretedLanguages.intersect(languages)
     def supportedCompiledLanguages = getCompiledLangauges()
-    def detectedCompiledLanguages = defaultIfNullOrEmtpy(supportedCompiledLanguages.intersect(languages), [])
+    def detectedCompiledLanguages = supportedCompiledLanguages.intersect(languages)
 
     if (detectedCompiledLanguages && closure == null){
         logWarn('CodeQL requires the build to be placed inside a closure for compiled language identifiers! Compiled languages will not be scanned.')
@@ -47,7 +47,7 @@ def call (Map params, Closure closure = null) {
     def detectedLanguages = detectedCompiledLanguages + detectedInterpretedLanguages
     for (language in detectedLanguages) {
         def codeqlDatabase
-        if (detectedCompiledLanguages.contains(langauge)) {
+        if (detectedCompiledLanguages.contains(language)) {
             codeqlDatabase = databasesCompiled
         } else {
             codeqlDatabse = databasesInterpreted
