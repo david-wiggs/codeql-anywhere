@@ -89,7 +89,7 @@ def getCodeqlExecutable() {
 }
 
 def codeqlInstall(Map params) {
-    def version = defaultIfNullOrEmtpy(params['version'], '20230403')  // v2.12.6
+    def version = '20230403' //defaultIfNullOrEmtpy(params['version'], '20230403')  // v2.12.6
     def codeqlReleaseUrl = "https://github.com/github/codeql-action/releases/download/codeql-bundle-${version}/codeql-bundle-linux64.tar.gz"
     def tmp = getCodeqlTempFolder()
     def codeqlArchivePath = "${WORKSPACE}/${tmp}/codeql-bundle-linux64.tar.gz"
