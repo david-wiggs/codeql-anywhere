@@ -1,7 +1,7 @@
 def call (Map params, Closure closure = null) {
     def credentialId = params['credentialId']
     def repoUrl = params['repoUrl']
-    def languages = processLanguages(params['languages'])
+    def languages = processLanguages(required(params['languages']))
     def ref = processRef(params['ref'])
     def ram = defaultIfNullOrEmtpy(params['ram'] as Integer, 4000)
     def threads = defaultIfNullOrEmtpy(params['threads'] as Integer, 1)
@@ -235,6 +235,42 @@ def uploadScanResults(Map params) {
                     --github-auth-stdin=${codeqlToken} \
                     --verbosity=${verbosity}
             """)
+        }
+    }
+}
+
+def required(Map params, String paramName) {
+    def val = params["${paramName}"]
+    if (val == null || val == "") {
+        logAndRaiseError "Required parameter: ${paramName} not provided or was empty."
+    }
+
+    return val
+}
+
+def processRef(String suppliedRef) {
+    def ref
+
+    if (suppliedRef) {
+        if (suppliedRef ==~ /(^ref\/(heads|tags)\/.*)|(^refs\/pull\/\d+\/(merge|head))/) {
+            ref = suppliedRef
+        } else {
+            logAndRaiseError("Supplied ref '${suppliedRef}' does not match expected formats:\n'refs/heads/<branch name>'\n'refs/tags/<tag name>'\n'refs/pull/<number>/merge'\n'refs/pull/<number>/head'")
+        }
+    }
+
+    if (!ref) {
+        if (env.CHANGE_URL?.contains('/pull/')) {
+            ref = "refs/pull/${CHANGE_ID}/head"
+        } else if (env.GIT_BRANCH) {
+            def originPrefix = 'origin/'
+            def branchName = env.GIT_BRANCH
+            if (branchName.startsWith(originPrefix)) {
+                branchName = branchName.minus(originPrefix)
+            }
+            ref = "refs/heads/${branchName}"
+        } else {
+            logAndRaiseError('Unable to autodetect ref.')
         }
     }
 }
