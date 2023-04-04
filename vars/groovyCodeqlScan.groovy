@@ -50,7 +50,7 @@ def call (Map params, Closure closure = null) {
         if (detectedCompiledLanguages.contains(language)) {
             codeqlDatabase = databasesCompiled
         } else {
-            codeqlDatabse = databasesInterpreted
+            codeqlDatabase = databasesInterpreted
         }
 
         codeqlDatabase = "${codeqlDatabase}/${language}"
