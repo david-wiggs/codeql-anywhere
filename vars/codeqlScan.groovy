@@ -115,7 +115,7 @@ def codeqlInstall(Map params) {
             }
 
             Invoke-RestMethod @splat -OutFile $env:WORKSPACE/$env:tmp/$bundleName
-            tar -xzf $env:WORKSPACE/$env:tmp/$bundleName -C $env:WORKSPACE}/$env:tmp
+            tar -xzf $env:WORKSPACE/$env:tmp/$bundleName -C $env:WORKSPACE/$env:tmp
             Remove-Item $env:WORKSPACE/$env:tmp/$bundleName -Force
         ''')
     }
