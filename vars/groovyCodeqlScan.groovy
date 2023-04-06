@@ -76,7 +76,7 @@ def getCodeqlTempFolder() {
 def createCodeqlFolders() {
     def tmp = getCodeqlTempFolder()
     pwsh("""
-        Remove-Item ${WORKSPACE}/${tmp} -Recurse -Force | Out-Null
+        if (Test-Path -Path ${WORKSPACE}/${tmp}) {Remove-Item ${WORKSPACE}/${tmp} -Recurse -Force | Out-Null}
         New-Item -ItemType Directory -Path ${WORKSPACE}/${tmp}/database | Out-Null
         New-Item -ItemType Directory -Path ${WORKSPACE}/${tmp}/results | Out-Null
         New-Item -ItemType Directory -Path ${WORKSPACE}/${tmp}/codeql | Out-Null
