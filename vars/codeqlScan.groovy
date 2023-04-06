@@ -88,7 +88,8 @@ def getCodeqlExecutable() {
 }
 
 def codeqlInstall(Map params) {
-    withEnv([tmp=getCodeqlTempFolder()]) {
+    def tmp = getCodeqlTempFolder()
+    withEnv(["tmp=${tmp}"]) {
         pwsh('''
             if ($PSVersionTable.OS -like '*windows*') {$os = 'windows'} elseif ($PSVersionTable.OS -like '*linux*') {$os = 'linux'} elseif ($PSVersionTable.OS -like 'darwin*') {$os = 'macos'} else {Write-Error "Could not determine OS."; break}
 
