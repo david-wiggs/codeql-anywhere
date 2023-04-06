@@ -222,8 +222,16 @@ def uploadScanResults(Map params) {
     def ref = params['ref']
     def commit = params['commit']
     def verbosity = params['verbosity']
+    def authentication
+    
+    if (credentialId) {
+        authentication = credentialId
+    }
+    else if (env.GITHUB_TOKEN) {
+        authentication = env.GITHUB_TOKEN
+    } 
 
-    withCredentials([usernamePassword(credentialsId: "${credentialId}", passwordVariable: 'codeqlToken', usernameVariable: ' ')]) {
+    withCredentials([string(credentialsId: "${credentialId}", variable: 'codeqlToken')]) {
         def codeql = getCodeqlExecutable()
         def repository = org + '/' + repo
         dir("${WORKSPACE}") {
@@ -233,7 +241,7 @@ def uploadScanResults(Map params) {
                     --ref=${ref} \
                     --repository=${repository} \
                     --commit=${commit} \
-                    --github-auth-stdin=${codeqlToken} \
+                    --github-auth-stdin=${authentication} \
                     --verbosity=${verbosity}
             """)
         }
