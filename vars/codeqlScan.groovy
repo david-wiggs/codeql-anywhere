@@ -1,5 +1,4 @@
 def call (Map params, Closure closure = null) {
-    def credentialId = params['credentialId']
     def repoUrl = params['repoUrl']
     def languages = processLanguages(params['languages'])
     def ref = processRef(params['ref'])
@@ -56,7 +55,7 @@ def call (Map params, Closure closure = null) {
         codeqlDatabase = "${codeqlDatabase}/${language}"
         def sarifResults = "${WORKSPACE}/${tmp}/results/${language}-results.sarif"
         analyze([codeqlDatabase: codeqlDatabase, querySuite: querySuite, category: language, sarifResults: sarifResults, ram: ram, threads: threads, verbosity: verbosity])
-        uploadScanResults([sarifResults: sarifResults, org: org, repo: repo, ref: ref, commit: commit, credentialId: credentialId, verbosity: verbosity])
+        uploadScanResults([sarifResults: sarifResults, org: org, repo: repo, ref: ref, commit: commit, verbosity: verbosity])
     }
 
     pwsh("Remove-Item ${WORKSPACE}/${tmp} -Recurse -Force")
@@ -215,7 +214,6 @@ def analyze(Map params) {
 }
 
 def uploadScanResults(Map params) {
-    def credentialId = params['credentialId']
     def sarifResults = params['sarifResults']
     def org = params['org']
     def repo = params['repo']
@@ -223,20 +221,20 @@ def uploadScanResults(Map params) {
     def commit = params['commit']
     def verbosity = params['verbosity']
   
-    withEnv([codeqlToken=credentials("${credentialId}")]) {
-        def codeql = getCodeqlExecutable()
-        def repository = org + '/' + repo
-        dir("${WORKSPACE}") {
-            pwsh("""
-                ${codeql} github upload-results \
-                    --sarif=${sarifResults} \
-                    --ref=${ref} \
-                    --repository=${repository} \
-                    --commit=${commit} \
-                    --verbosity=${verbosity}""" + ' --github-auth-stdin=$codeqlToken'
-                )
-        }
+    
+    def codeql = getCodeqlExecutable()
+    def repository = org + '/' + repo
+    dir("${WORKSPACE}") {
+        pwsh("""
+            ${codeql} github upload-results \
+                --sarif=${sarifResults} \
+                --ref=${ref} \
+                --repository=${repository} \
+                --commit=${commit} \
+                --verbosity=${verbosity}""" + ' --github-auth-stdin=$codeqlToken' // Assumes $codeqlToken is set, as described here https://www.jenkins.io/doc/book/pipeline/jenkinsfile/#string-interpolation
+            )
     }
+    
     // withCredentials([string(credentialsId: "${credentialId}", variable: 'codeqlToken')]) {
         
     // }
