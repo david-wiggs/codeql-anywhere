@@ -240,15 +240,6 @@ def uploadScanResults(Map params) {
     }
 }
 
-def required(Map params, String paramName) {
-    def val = params["${paramName}"]
-    if (val == null || val == "") {
-        logAndRaiseError "Required parameter: ${paramName} not provided or was empty."
-    }
-
-    return val
-}
-
 def processRef(String suppliedRef) {
     def ref
 
@@ -258,9 +249,7 @@ def processRef(String suppliedRef) {
         } else {
             logAndRaiseError("Supplied ref '${suppliedRef}' does not match expected formats:\n'refs/heads/<branch name>'\n'refs/tags/<tag name>'\n'refs/pull/<number>/merge'\n'refs/pull/<number>/head'")
         }
-    }
-
-    if (!ref) {
+    } else {
         ref = pwsh(script:'git symbolic-ref HEAD', returnStdout: true).trim()
     }
 
