@@ -201,9 +201,10 @@ def analyze(Map params) {
     def threads = params['threads']
     def verbosity = params['verbosity']
     def codeql = getCodeqlExecutable()
+    def queries = sh(script:"find . -name *${querySuite}.qls", returnStdout: true).trim()
 
     sh("""
-        ${codeql} database analyze ${codeqlDatabase} ${querySuite} \
+        ${codeql} database analyze ${codeqlDatabase} ${queries} \
             --format=sarif-latest \
             --sarif-category=${category} \
             --output=${sarifResults} \
