@@ -223,7 +223,7 @@ def uploadScanResults(Map params) {
     def commit = params['commit']
     def verbosity = params['verbosity']
 
-    withCredentials([usernamePasword(credentialsId: "${credentialId}", passwordVariable: 'codeqlToken', usernameVaiable: ' ')]) {
+    withCredentials([usernamePassword(credentialsId: "${credentialId}", passwordVariable: 'codeqlToken', usernameVaiable: ' ')]) {
         def codeql = getCodeqlExecutable()
         def repository = org + '/' + repo
         dir("${WORKSPACE}") {
