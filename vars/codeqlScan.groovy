@@ -88,35 +88,37 @@ def getCodeqlExecutable() {
 }
 
 def codeqlInstall(Map params) {
-    def tmp = getCodeqlTempFolder()
-    pwsh('''
-        if ($PSVersionTable.OS -like '*windows*') {$os = 'windows'} elseif ($PSVersionTable.OS -like '*linux*') {$os = 'linux'} elseif ($PSVersionTable.OS -like 'darwin*') {$os = 'macos'} else {Write-Error "Could not determine OS."; break}
+    withEnv([tmp=getCodeqlTempFolder()]) {
+        pwsh('''
+            if ($PSVersionTable.OS -like '*windows*') {$os = 'windows'} elseif ($PSVersionTable.OS -like '*linux*') {$os = 'linux'} elseif ($PSVersionTable.OS -like 'darwin*') {$os = 'macos'} else {Write-Error "Could not determine OS."; break}
 
-        $splat = @{
-            Method = 'Get' 
-            Uri = 'https://api.github.com/repos/github/codeql-action/releases/latest'
-            ContentType = 'application/json'
-        }
-        $codeQlLatestVersion = Invoke-RestMethod @splat
+            $splat = @{
+                Method = 'Get' 
+                Uri = 'https://api.github.com/repos/github/codeql-action/releases/latest'
+                ContentType = 'application/json'
+            }
+            $codeQlLatestVersion = Invoke-RestMethod @splat
 
-        if ($os -like 'linux') {
-            $bundleName = 'codeql-bundle-linux64.tar.gz'
-        } elseif ($os -like 'macos') {
-            $bundleName = 'codeql-bundle-osx64.tar.gz'
-        } elseif ($os -like 'windows') {
-            $bundleName = 'codeql-bundle-win64.tar.gz'
-        }
+            if ($os -like 'linux') {
+                $bundleName = 'codeql-bundle-linux64.tar.gz'
+            } elseif ($os -like 'macos') {
+                $bundleName = 'codeql-bundle-osx64.tar.gz'
+            } elseif ($os -like 'windows') {
+                $bundleName = 'codeql-bundle-win64.tar.gz'
+            }
 
-        $splat = @{
-            Method = 'Get' 
-            Uri = "https://github.com/github/codeql-action/releases/download/$($codeQlLatestVersion.tag_name)/$bundleName"
-            ContentType = 'application/zip'
-        }
+            $splat = @{
+                Method = 'Get' 
+                Uri = "https://github.com/github/codeql-action/releases/download/$($codeQlLatestVersion.tag_name)/$bundleName"
+                ContentType = 'application/zip'
+            }
 
-        Invoke-RestMethod @splat -OutFile $WORKSPACE/$tmp/$bundleName
-        tar -xzf $WORKSPACE/$tmp/$bundleName -C ${WORKSPACE}/${tmp}
-        Remove-Item $WORKSPACE/$tmp/$bundleName -Force
-    ''')
+            Invoke-RestMethod @splat -OutFile $env:WORKSPACE/$env:tmp/$bundleName
+            tar -xzf $env:WORKSPACE/$env:tmp/$bundleName -C $env:WORKSPACE}/$env:tmp
+            Remove-Item $env:WORKSPACE/$env:tmp/$bundleName -Force
+        ''')
+    }
+    
     
     
     
