@@ -94,7 +94,7 @@ def codeqlInstall(Map params) {
     def tmp = getCodeqlTempFolder()
     def codeqlArchivePath = "${WORKSPACE}/${tmp}/codeql-bundle-linux64.tar.gz"
     pwsh("""
-        Invoke-WebRequest -OutFile ${codeqlArchivePath} -L ${codeqlReleaseUrl}
+        Invoke-WebRequest -OutFile ${codeqlArchivePath} ${codeqlReleaseUrl}
         tar -xzf ${codeqlArchivePath} -C ${WORKSPACE}/${tmp}
         Remove-Item ${codeqlArchivePath} -Force
     """)
