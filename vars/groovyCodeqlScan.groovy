@@ -261,18 +261,7 @@ def processRef(String suppliedRef) {
     }
 
     if (!ref) {
-        if (env.CHANGE_URL?.contains('/pull/')) {
-            ref = "refs/pull/${CHANGE_ID}/head"
-        } else if (env.GIT_BRANCH) {
-            def originPrefix = 'origin/'
-            def branchName = env.GIT_BRANCH
-            if (branchName.startsWith(originPrefix)) {
-                branchName = branchName.minus(originPrefix)
-            }
-            ref = "refs/heads/${branchName}"
-        } else {
-            logAndRaiseError('Unable to autodetect ref.')
-        }
+        ref = sh(script:'git symbolic-ref HEAD', returnStdout: true).trim()
     }
 
     return ref
