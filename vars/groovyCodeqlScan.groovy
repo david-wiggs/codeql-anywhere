@@ -274,6 +274,8 @@ def processRef(String suppliedRef) {
             logAndRaiseError('Unable to autodetect ref.')
         }
     }
+
+    return ref
 }
 
 def logAndRaiseError(message, String ... parameters) {
