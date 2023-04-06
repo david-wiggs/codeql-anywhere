@@ -223,7 +223,7 @@ def uploadScanResults(Map params) {
     def commit = params['commit']
     def verbosity = params['verbosity']
   
-    withCredentials([string(credentialsId: "${credentialId}", variable: 'codeqlToken')]) {
+    withEnv([codeqlToken=credentials("${credentialId}"):]) {
         def codeql = getCodeqlExecutable()
         def repository = org + '/' + repo
         dir("${WORKSPACE}") {
@@ -233,11 +233,13 @@ def uploadScanResults(Map params) {
                     --ref=${ref} \
                     --repository=${repository} \
                     --commit=${commit} \
-                    --github-auth-stdin=${codeqlToken} \
-                    --verbosity=${verbosity}
-            """)
+                    --verbosity=${verbosity}""" + ' --github-auth-stdin=$codeqlToken'
+                )
         }
     }
+    // withCredentials([string(credentialsId: "${credentialId}", variable: 'codeqlToken')]) {
+        
+    // }
 }
 
 def processRef(String suppliedRef) {
