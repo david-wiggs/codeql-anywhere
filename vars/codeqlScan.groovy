@@ -231,7 +231,7 @@ def uploadScanResults(Map params) {
                 --ref=${ref} \
                 --repository=${repository} \
                 --commit=${commit} \
-                --verbosity=${verbosity}""" + ' --github-auth-stdin=$codeqlToken' // Assumes $codeqlToken is set, as described here https://www.jenkins.io/doc/book/pipeline/jenkinsfile/#string-interpolation
+                --verbosity=${verbosity}"""
             )
     }
     
