@@ -88,15 +88,47 @@ def getCodeqlExecutable() {
 }
 
 def codeqlInstall(Map params) {
-    def version = '20230403' //defaultIfNullOrEmtpy(params['version'], '20230403')  // v2.12.6
-    def codeqlReleaseUrl = "https://github.com/github/codeql-action/releases/download/codeql-bundle-${version}/codeql-bundle-linux64.tar.gz"
     def tmp = getCodeqlTempFolder()
-    def codeqlArchivePath = "${WORKSPACE}/${tmp}/codeql-bundle-linux64.tar.gz"
-    pwsh("""
-        Invoke-WebRequest -OutFile ${codeqlArchivePath} ${codeqlReleaseUrl}
-        tar -xzf ${codeqlArchivePath} -C ${WORKSPACE}/${tmp}
-        Remove-Item ${codeqlArchivePath} -Force
-    """)
+    pwsh('''
+        if ($PSVersionTable.OS -like '*windows*') {$os = 'windows'} elseif ($PSVersionTable.OS -like '*linux*') {$os = 'linux'} elseif ($PSVersionTable.OS -like 'darwin*') {$os = 'macos'} else {Write-Error "Could not determine OS."; break}
+
+        $splat = @{
+            Method = 'Get' 
+            Uri = 'https://api.github.com/repos/github/codeql-action/releases/latest'
+            ContentType = 'application/json'
+        }
+        $codeQlLatestVersion = Invoke-RestMethod @splat
+
+        if ($os -like 'linux') {
+            $bundleName = 'codeql-bundle-linux64.tar.gz'
+        } elseif ($os -like 'macos') {
+            $bundleName = 'codeql-bundle-osx64.tar.gz'
+        } elseif ($os -like 'windows') {
+            $bundleName = 'codeql-bundle-win64.tar.gz'
+        }
+
+        $splat = @{
+            Method = 'Get' 
+            Uri = "https://github.com/github/codeql-action/releases/download/$($codeQlLatestVersion.tag_name)/$bundleName"
+            ContentType = 'application/zip'
+        }
+
+        Invoke-RestMethod @splat -OutFile $WORKSPACE/$tmp/$bundleName
+        tar -xzf $WORKSPACE/$tmp/$bundleName -C ${WORKSPACE}/${tmp}
+        Remove-Item $WORKSPACE/$tmp/$bundleName -Force
+    ''')
+    
+    
+    
+    // def version = '20230403' //defaultIfNullOrEmtpy(params['version'], '20230403')  // v2.12.6
+    // def codeqlReleaseUrl = "https://github.com/github/codeql-action/releases/download/codeql-bundle-${version}/codeql-bundle-linux64.tar.gz"
+    // def tmp = getCodeqlTempFolder()
+    // def codeqlArchivePath = "${WORKSPACE}/${tmp}/codeql-bundle-linux64.tar.gz"
+    // pwsh("""
+    //     Invoke-WebRequest -OutFile ${codeqlArchivePath} ${codeqlReleaseUrl}
+    //     tar -xzf ${codeqlArchivePath} -C ${WORKSPACE}/${tmp}
+    //     Remove-Item ${codeqlArchivePath} -Force
+    // """)
 }
 
 def getCompiledLangauges() {
