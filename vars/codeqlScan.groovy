@@ -1,19 +1,11 @@
 def call (Map params, Closure closure = null) {
-    def repoUrl = params['repoUrl']
     def languages = processLanguages(params['languages'])
     def ref = processRef(params['ref'])
     def ram = defaultIfNullOrEmtpy(params['ram'] as Integer, 4000)
     def threads = defaultIfNullOrEmtpy(params['threads'] as Integer, 1)
     def verbosity = defaultIfNullOrEmtpy(params['verbosity'], 'errors')
     def querySuite = defaultIfNullOrEmtpy(params['querySuite'], 'code-scanning')
-    def origin
-    
-    if (repoUrl) {
-        origin = repoUrl
-    } else {
-        origin = pwsh(script: 'git config --get remote.origin.url', returnStdout: true).trim()
-    }
-
+    def origin = pwsh(script: 'git config --get remote.origin.url', returnStdout: true).trim()
     def org = origin.tokenize('/')[-2]
     def repo = origin.tokenize('/')[-1].tokenize('.')[0]
     def commit = pwsh(script: 'git rev-parse --verify HEAD', returnStdout: true).trim()
@@ -87,7 +79,7 @@ def getCodeqlExecutable() {
     return "${WORKSPACE}/${tmp}/codeql/codeql"
 }
 
-def codeqlInstall(Map params) {
+def codeqlInstall() {
     def tmp = getCodeqlTempFolder()
     withEnv(["tmp=${tmp}"]) {
         pwsh('''
@@ -119,19 +111,6 @@ def codeqlInstall(Map params) {
             Remove-Item $env:WORKSPACE/$env:tmp/$bundleName -Force
         ''')
     }
-    
-    
-    
-    
-    // def version = '20230403' //defaultIfNullOrEmtpy(params['version'], '20230403')  // v2.12.6
-    // def codeqlReleaseUrl = "https://github.com/github/codeql-action/releases/download/codeql-bundle-${version}/codeql-bundle-linux64.tar.gz"
-    // def tmp = getCodeqlTempFolder()
-    // def codeqlArchivePath = "${WORKSPACE}/${tmp}/codeql-bundle-linux64.tar.gz"
-    // pwsh("""
-    //     Invoke-WebRequest -OutFile ${codeqlArchivePath} ${codeqlReleaseUrl}
-    //     tar -xzf ${codeqlArchivePath} -C ${WORKSPACE}/${tmp}
-    //     Remove-Item ${codeqlArchivePath} -Force
-    // """)
 }
 
 def getCompiledLangauges() {
