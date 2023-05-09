@@ -89,27 +89,6 @@ function Get-GitHubRepositorySupportedCodeQLLanguages {
     $returnLanguages
 }
 
-function Get-GitHubRepositorySupportedMobSFScanLanguages {
-    [CmdletBinding()]
-    Param
-    (
-        [Parameter(Mandatory = $False)] [string] $token,
-        [Parameter(Mandatory = $True)] [string] $owner,
-        [Parameter(Mandatory = $True)] [string] $repositoryName
-    )
-    
-    $splat = @{
-        repositoryName = $repositoryName
-        owner = $owner
-    }
-    if ($PSBoundParameters.ContainsKey('token')) {
-        $splat.Add('token', $token)
-    } 
-    [array]$repositoryLanguages = Get-GitHubRepositoryLanguages @splat
-    $supportedCodeQLLanguages = @('swift', 'kotlin', 'objective-c')
-    $repositoryLanguages | Where-Object {$_ -in $supportedCodeQLLanguages} | ForEach-Object {$_.ToLower()}
-}
-
 function Set-GZipFile([ValidateScript({Test-Path $_})][string]$File){
  
     $srcFile = Get-Item -Path $File
