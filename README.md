@@ -8,6 +8,10 @@ While there has historically always been the ability to leverage CodeQL within 3
 - [Requirements](#requirements)
 - [Approach](#approach)
 - [Assumptions](#assumptions)
+- [Examples](#examples)
+  - [Local Machine](#local-machine)
+  - [Azure DevOps](#azure-devops)
+  - [Jenkins](#jenkins)
 - [Interpreted Languages](#interpreted-languages)
 - [Compiled Languages](#compiled-languages)
   - [C / C++](#c--c)
@@ -15,10 +19,6 @@ While there has historically always been the ability to leverage CodeQL within 3
   - [Java](#java)
   - [Go](#go)
   - [Build Script](#build-script)
-- [Examples](#examples)
-  - [Local Machine](#local-machine)
-  - [Azure DevOps](#azure-devops)
-  - [Jenkins](#jenkins)
 - [Dot Sourcing](#dot-sourcing)
 
 # Requirements
@@ -37,47 +37,6 @@ That's pretty much it...
 - The working directory is a `git` repository
 - The Personal Access Token that is used has the ability to write `security_events` for a given repository
 - We don't use the `codeql` CLI to upload SARIF results because it currently (❓) doesn't support the ability to record the length of time a given scan takes. This leaves an undesirable _Unknown_ in the Duration field of the banner that is above the alerts table in the Code scanning section of a given repository.  
-
-# Interpreted Languages
-CodeQL supports the following interpreted languages (i.e., languages that don't require compilation):
-- Python
-- JavaScript
-- TypeScript
-- Ruby
-
-As such, if any of these languages is found to be present in a given repository, CodeQL will execute queries to analyze that language, respectively.
-
-# Compiled Languages
-The CodeQL currently supports [_autobuild_ features](https://codeql.github.com/docs/codeql-cli/creating-codeql-databases/#detecting-the-build-system). However, when complex combinations of compiled languages are passed in when using the `--db-cluster` parameters, sometimes the CodeQL cli will fail to build applications correctly, even if default application files, directories, an frameworks are leveraged. Because of this the `New-CodeQLScan` function attempts to build each compiled language, in serial, as described below. 
-
-## C / C++
-In an attempt to cover both C and C++ the `New-CodeQLScan` functions assumes a `MAKEFILE` exists in the source root. A simple `make` is issued to compile source code. 
-
-## C#
-Assuming that the appropriate version of .NET is installed, `New-CodeQLScan` will attempt to execute `dotnet build /p:UseSharedCompilation=false /t:rebuild` in the source root. Note that the `/p:UseSharedCompilation=false` flag is required per [CodeQL documentation](https://codeql.github.com/docs/codeql-cli/creating-codeql-databases/#specifying-build-commands). It is also recommended that the `/t:rebuild` flag be used to ensure that the entire build process is captured. 
-
-## Java
-Assuming that Java is installed and the `$JAVA_HOME` environment variable is set appropriately, the `New-CodeQLScan` function will attempt to determine the appropriate build method. A general assumption is that if Maven or Gradle is used, that a respective wrapper file(s) exist (e.g., mvnw, or gradlew) somewhere in the working repository.
-
-### Maven
-Assuming that Maven is installed, if a file that matches `*mvn*` is present in the repository, then an attempt to build the Java code will be made by executing `mvn clean --file $($pomFile.FullName) install` where `$($pomFile.FullName)` is the full path to `pom.xml` (assuming it exists).
-
-### Gradle
-Assuming that Gradle is installed, if a file that matches `*gradle*` is present in the repository, then an attempt to build the Java code will be made by executing `gradle --no-daemon clean test`.
-
-### Ant
-Assuming that Ant is installed, if a file that matches `*build.xml` is present in the repository, then an attempt to build the Java code will be made by executing  `ant -f $antBuildFile`.
-
-## Go
-The `New-CodeQLScan` function leverages the `CODEQL_EXTRACTOR_GO_BUILD_TRACING=on` environment variable in an attempt to automatically build Go source code. The first directory that contains a `.go` file is used to execute the build commands. If a specific build script is needed to compile the Go source code, consider leveraging the `-pathToBuildScript` parameter to specify the path to a file that gives general steps (e.g., scripts/build.sh). 
-
-## Build Script
-If the automated build logic for compiled languages does not fit your application, consider creating a file that defines the required build steps (e.g., commands). If there are multiple compiled languages in your application, this file should contain the needed steps to compile all languages, as only a single build file can be specified.
-
-Specify a build script file. 
-```powershell
-New-CodeQLScan -token $env:GITHUB_TOKEN -pathToBuildScript 'scripts/build.sh'
-```
 
 # Examples
 This section aims to demonstrate the portability of `codeql-anywhere`.
@@ -134,6 +93,9 @@ jobs:
 ## Jenkins
 This repository has the folder structure such that it can be consumed as a Jenkins [Shared Library](https://www.jenkins.io/doc/book/pipeline/shared-libraries/). Additionally, it contains the needed groovy script to call the `New-CodeQLScan.ps1` PowerShell script. Below is an example of a Jenkins Pipeline script that could be used. It assumes that there is a Jenkins credential named `codeql-token` of type _Secret Text_ that is the GitHub Personal Access Token to be used that uploads CodeQL results.
 
+### Interpreted language example
+The below example demonstrates how to execute the `codeqlScan()` function included as a shared library. In this example, it is assumed that only interpreted languages are being scanned. 
+
 ```groovy
 @Library('codeql-anywhere') _
 pipeline {
@@ -155,6 +117,75 @@ pipeline {
     }
   }
 }
+```
+
+### Compiled language example
+The below example demonstrates how to pass the simple build command of `maven clean` (assuming a Java / maven project) so that CodeQL is able to successfully extract the source into a database
+
+```groovy
+@Library('codeql-anywhere') _
+pipeline {
+  agent any
+  environment {
+        GITHUB_TOKEN = credentials('codeql-token')
+  }
+  stages {
+    stage('Checkout') {
+      steps {
+        git branch: 'main',
+            url: 'https://github.com/david-wiggs/codeql-testing.git'
+      }
+    }
+    stage('Execute CodeQL Scan') {
+      steps {
+        codeqlScan() {
+          maven clean
+        }
+      }
+    }
+  }
+}
+```
+
+# Interpreted Languages
+CodeQL supports the following interpreted languages (i.e., languages that don't require compilation):
+- Python
+- JavaScript
+- TypeScript
+- Ruby
+
+As such, if any of these languages is found to be present in a given repository, CodeQL will execute queries to analyze that language, respectively.
+
+# Compiled Languages
+The CodeQL currently supports [_autobuild_ features](https://codeql.github.com/docs/codeql-cli/creating-codeql-databases/#detecting-the-build-system). However, when complex combinations of compiled languages are passed in when using the `--db-cluster` parameters, sometimes the CodeQL cli will fail to build applications correctly, even if default application files, directories, an frameworks are leveraged. Because of this the `New-CodeQLScan` function attempts to build each compiled language, in serial, as described below. 
+
+## C / C++
+In an attempt to cover both C and C++ the `New-CodeQLScan` functions assumes a `MAKEFILE` exists in the source root. A simple `make` is issued to compile source code. 
+
+## C#
+Assuming that the appropriate version of .NET is installed, `New-CodeQLScan` will attempt to execute `dotnet build /p:UseSharedCompilation=false /t:rebuild` in the source root. Note that the `/p:UseSharedCompilation=false` flag is required per [CodeQL documentation](https://codeql.github.com/docs/codeql-cli/creating-codeql-databases/#specifying-build-commands). It is also recommended that the `/t:rebuild` flag be used to ensure that the entire build process is captured. 
+
+## Java
+Assuming that Java is installed and the `$JAVA_HOME` environment variable is set appropriately, the `New-CodeQLScan` function will attempt to determine the appropriate build method. A general assumption is that if Maven or Gradle is used, that a respective wrapper file(s) exist (e.g., mvnw, or gradlew) somewhere in the working repository.
+
+### Maven
+Assuming that Maven is installed, if a file that matches `*mvn*` is present in the repository, then an attempt to build the Java code will be made by executing `mvn clean --file $($pomFile.FullName) install` where `$($pomFile.FullName)` is the full path to `pom.xml` (assuming it exists).
+
+### Gradle
+Assuming that Gradle is installed, if a file that matches `*gradle*` is present in the repository, then an attempt to build the Java code will be made by executing `gradle --no-daemon clean test`.
+
+### Ant
+Assuming that Ant is installed, if a file that matches `*build.xml` is present in the repository, then an attempt to build the Java code will be made by executing  `ant -f $antBuildFile`.
+
+## Go
+The `New-CodeQLScan` function leverages the `CODEQL_EXTRACTOR_GO_BUILD_TRACING=on` environment variable in an attempt to automatically build Go source code. The first directory that contains a `.go` file is used to execute the build commands. If a specific build script is needed to compile the Go source code, consider leveraging the `-pathToBuildScript` parameter to specify the path to a file that gives general steps (e.g., scripts/build.sh). 
+
+## Build Script
+If the automated build logic for compiled languages does not fit your application, consider creating a file that defines the required build steps (e.g., commands). If there are multiple compiled languages in your application, this file should contain the needed steps to compile all languages, as only a single build file can be specified.
+
+Specify a build script file. 
+```powershell
+New-CodeQLScan -token $env:GITHUB_TOKEN -pathToBuildScript 'scripts/build.sh'
 ```
 
 ## Dot Sourcing
