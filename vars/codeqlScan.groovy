@@ -5,10 +5,10 @@ def call (Map params, Closure closure = null) {
     def threads = defaultIfNullOrEmtpy(params['threads'] as Integer, 1)
     def verbosity = defaultIfNullOrEmtpy(params['verbosity'], 'errors')
     def querySuite = defaultIfNullOrEmtpy(params['querySuite'], 'code-scanning')
-    def origin = pwsh(script: 'git config --get remote.origin.url', returnStdout: true).trim()
+    def origin = sh(script: 'git config --get remote.origin.url', returnStdout: true).trim()
     def org = origin.tokenize('/')[-2]
     def repo = origin.tokenize('/')[-1].tokenize('.')[0]
-    def commit = pwsh(script: 'git rev-parse --verify HEAD', returnStdout: true).trim()
+    def commit = sh(script: 'git rev-parse --verify HEAD', returnStdout: true).trim()
 
     createCodeqlFolders()
     codeqlInstall()
@@ -50,7 +50,7 @@ def call (Map params, Closure closure = null) {
         uploadScanResults([sarifResults: sarifResults, org: org, repo: repo, ref: ref, commit: commit, verbosity: verbosity])
     }
 
-    pwsh("Remove-Item ${WORKSPACE}/${tmp} -Recurse -Force")
+    sh("Remove-Item ${WORKSPACE}/${tmp} -Recurse -Force")
 }
 
 def defaultIfNullOrEmtpy(val, defaultVal) {
@@ -66,7 +66,7 @@ def getCodeqlTempFolder() {
 
 def createCodeqlFolders() {
     def tmp = getCodeqlTempFolder()
-    pwsh("""
+    sh("""
         if (Test-Path -Path ${WORKSPACE}/${tmp}) {Remove-Item ${WORKSPACE}/${tmp} -Recurse -Force | Out-Null}
         New-Item -ItemType Directory -Path ${WORKSPACE}/${tmp}/database | Out-Null
         New-Item -ItemType Directory -Path ${WORKSPACE}/${tmp}/results | Out-Null
@@ -82,7 +82,7 @@ def getCodeqlExecutable() {
 def codeqlInstall() {
     def tmp = getCodeqlTempFolder()
     withEnv(["tmp=${tmp}"]) {
-        pwsh('''
+        sh('''
             if ($PSVersionTable.OS -like '*windows*') {$os = 'windows'} elseif ($PSVersionTable.OS -like '*linux*') {$os = 'linux'} elseif ($PSVersionTable.OS -like 'darwin*') {$os = 'macos'} else {Write-Error "Could not determine OS."; break}
 
             $splat = @{
@@ -152,7 +152,7 @@ def createTracedDatabases(Map params, Closure closure) {
     def listOfLanguages = languages.join(",")
     def codeql = getCodeqlExecutable()
 
-    pwsh("""
+    sh("""
         ${codeql} database init ${codeqlDatabase} \
             --source-root=. \
             --language=${listOfLanguages} \
@@ -163,7 +163,7 @@ def createTracedDatabases(Map params, Closure closure) {
     """)
 
     def codeqlTracingScript = "${codeqlDatabase}/temp/tracingEnvironment/start-tracing.sh"
-    def tracingScriptContent = pwsh(script: "Get-Content -Path ${codeqlTracingScript}", returnStdout: true).trim()
+    def tracingScriptContent = sh(script: "Get-Content -Path ${codeqlTracingScript}", returnStdout: true).trim()
     def effectiveOverrides = tracingScriptContent
         .split('\n')
         .collect {
@@ -176,7 +176,7 @@ def createTracedDatabases(Map params, Closure closure) {
         closure.call()
     }
 
-    pwsh("""
+    sh("""
         ${codeql} database finalize ${codeqlDatabase} \
             --db-cluster \
             --ram=${ram} \
@@ -194,7 +194,7 @@ def createStandardDatabases(Map params) {
     def listOfLanguages = languages.join(",")
     def codeql = getCodeqlExecutable()
 
-    pwsh("""
+    sh("""
         ${codeql} database create ${codeqlDatabase} \
             --language=${listOfLanguages} \
             --db-cluster \
@@ -214,9 +214,9 @@ def analyze(Map params) {
     def threads = params['threads']
     def verbosity = params['verbosity']
     def codeql = getCodeqlExecutable()
-    def queries = pwsh(script:"(Get-ChildItem -Recurse -Filter '*${category}-${querySuite}.qls').FullName", returnStdout: true).trim()
+    def queries = sh(script:"(Get-ChildItem -Recurse -Filter '*${category}-${querySuite}.qls').FullName", returnStdout: true).trim()
 
-    pwsh("""
+    sh("""
         ${codeql} database analyze ${codeqlDatabase} ${queries} \
             --format=sarif-latest \
             --sarif-category=${category} \
@@ -238,7 +238,7 @@ def uploadScanResults(Map params) {
     def repository = org + '/' + repo
     
     dir("${WORKSPACE}") {
-        pwsh("""
+        sh("""
             ${codeql} github upload-results \
                 --sarif=${sarifResults} \
                 --ref=${ref} \
@@ -259,7 +259,7 @@ def processRef(String suppliedRef) {
             logAndRaiseError("Supplied ref '${suppliedRef}' does not match expected formats:\n'refs/heads/<branch name>'\n'refs/tags/<tag name>'\n'refs/pull/<number>/merge'\n'refs/pull/<number>/head'")
         }
     } else {
-        ref = pwsh(script:'git symbolic-ref HEAD', returnStdout: true).trim()
+        ref = sh(script:'git symbolic-ref HEAD', returnStdout: true).trim()
     }
 
     return ref
