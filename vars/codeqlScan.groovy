@@ -7,8 +7,8 @@ def call (Map params, Closure closure = null) {
     def querySuite = defaultIfNullOrEmtpy(params['querySuite'], 'code-scanning')
     sh(script: '''
         curl -O -L https://github.com/PowerShell/PowerShell/releases/download/v7.2.16/powershell-7.2.16-linux-x64.tar.gz && \
-        tar -xf powershell-7.2.16-linux-x64.tar.gz.tar.gz && \
-        export PATH="$(pwd)/powershell-7.2.16-linux-x64.tar.gz:$PATH"
+        tar -xf powershell-7.2.16-linux-x64.tar.gz && \
+        export PATH="$(pwd)/powershell-7.2.16-linux-x64:$PATH"
     ''', returnStdout: true)
     def origin = pwsh(script: 'git config --get remote.origin.url', returnStdout: true).trim()
     def org = origin.tokenize('/')[-2]
