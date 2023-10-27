@@ -88,7 +88,7 @@ def codeqlInstall() {
     sh("tar -xzf ${codeqlArchivePath} -C ${codeqlPath}")
     def codeql = getCodeqlExecutable()
     sh(script:"${codeql} --version", returnStdout: true).trim()
-    sh("rm -rf ${codeqlArchivePath}"
+    sh("rm -rf ${codeqlArchivePath}")
 }
 
 def getCompiledLangauges() {
