@@ -81,7 +81,11 @@ def getCodeqlExecutable() {
 
 def codeqlInstall() {
     def tmp = getCodeqlTempFolder()
-    def codeqlReleaseUrl = 'https://github.com/github/codeql-action/releases/download/codeql-bundle-v2.15.1/codeql-bundle-linux64.tar.gz'
+    def os
+    def uname = sh(script: "uname", returnStdout: true).trim()
+    if (uname.startsWith("Darwin")) {os = 'osx'} else {os = 'linux'}
+    def tar = "codeql-bundle-${os}64.tar.gz"
+    def codeqlReleaseUrl = "https://github.com/github/codeql-action/releases/download/codeql-bundle-v2.15.1/${tar}"
     def codeqlArchivePath = "${WORKSPACE}/${tmp}/codeql-bundle-linux64.tar.gz"
     sh("curl -s -o ${codeqlArchivePath} -L ${codeqlReleaseUrl}")
     def codeqlPath = "${WORKSPACE}/${tmp}"
