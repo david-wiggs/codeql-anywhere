@@ -27,10 +27,10 @@ def call (Map params, Closure closure = null) {
     }
 
     if (detectedCompiledLanguages && detectedInterpretedLanguages) {
-        createTracedDatabses([codeqlDatabase: databasesCompiled, languages: detectedCompiledLanguages, ram: ram, threads: threads, verbosity: verbosity], closure)
+        createTracedDatabases([codeqlDatabase: databasesCompiled, languages: detectedCompiledLanguages, ram: ram, threads: threads, verbosity: verbosity], closure)
         createStandardDatabases([codeqlDatabase: databasesInterpreted, languages:detectedInterpretedLanguages, ram: ram, threads: threads, verbosity: verbosity])
     } else if (detectedCompiledLanguages) {
-        createdTracedDatabases([codeqlDatabase: databasesCompiled, languages: detectedCompiledLanguages, ram: ram, threads: threads, verbosity: verbosity], closure)
+        createTracedDatabases([codeqlDatabase: databasesCompiled, languages: detectedCompiledLanguages, ram: ram, threads: threads, verbosity: verbosity], closure)
     } else {
         createStandardDatabases([codeqlDatabase: databasesInterpreted, languages:detectedInterpretedLanguages, ram: ram, threads: threads, verbosity: verbosity])
     }
