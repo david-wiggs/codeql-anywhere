@@ -68,9 +68,9 @@ def createCodeqlFolders() {
     def tmp = getCodeqlTempFolder()
     sh("""
         rm -rf ${WORKSPACE}/${tmp}
-        mkdir ${WORKSPACE}/${tmp}/database
-        mkdir ${WORKSPACE}/${tmp}/results
-        mkdir ${WORKSPACE}/${tmp}/codeql
+        mkdir -p ${WORKSPACE}/${tmp}/database
+        mkdir -p ${WORKSPACE}/${tmp}/results
+        mkdir -p ${WORKSPACE}/${tmp}/codeql
     """)
 }
 
