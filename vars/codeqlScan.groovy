@@ -8,7 +8,7 @@ def call (Map params, Closure closure = null) {
     sh(script: '''
         curl -O -L https://github.com/PowerShell/PowerShell/releases/download/v7.2.16/powershell-7.2.16-linux-x64.tar.gz && \
         tar -xf powershell-7.2.16-linux-x64.tar.gz && \
-        export PATH=\"$WORKSPACE/powershell-7.2.16-linux-x64:$PATH\"
+        export PATH='$WORKSPACE/powershell-7.2.16-linux-x64:$PATH'
     ''', returnStdout: true)
     def origin = pwsh(script: 'git config --get remote.origin.url', returnStdout: true).trim()
     def org = origin.tokenize('/')[-2]
