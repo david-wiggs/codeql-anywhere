@@ -153,7 +153,7 @@ def createTracedDatabases(Map params, Closure closure) {
     def codeql = getCodeqlExecutable()
 
     pwsh("""
-        \"${codeql}\" database init ${codeqlDatabase} \
+        `"${codeql}`" database init ${codeqlDatabase} \
             --source-root=. \
             --language=${listOfLanguages} \
             --begin-tracing \
@@ -177,7 +177,7 @@ def createTracedDatabases(Map params, Closure closure) {
     }
 
     pwsh("""
-        \"${codeql}\" database finalize ${codeqlDatabase} \
+        `"${codeql}`" database finalize ${codeqlDatabase} \
             --db-cluster \
             --ram=${ram} \
             --threads=${threads} \
@@ -195,7 +195,7 @@ def createStandardDatabases(Map params) {
     def codeql = getCodeqlExecutable()
 
     pwsh("""
-        \"${codeql}\" database create ${codeqlDatabase} \
+        `"${codeql}`" database create ${codeqlDatabase} \
             --language=${listOfLanguages} \
             --db-cluster \
             --overwrite \
@@ -217,7 +217,7 @@ def analyze(Map params) {
     def queries = pwsh(script:"(Get-ChildItem -Recurse -Filter '*${category}-${querySuite}.qls').FullName", returnStdout: true).trim()
 
     pwsh("""
-        \"${codeql}\" database analyze ${codeqlDatabase} ${queries} \
+        `"${codeql}`" database analyze ${codeqlDatabase} ${queries} \
             --format=sarif-latest \
             --sarif-category=${category} \
             --output=${sarifResults} \
@@ -239,7 +239,7 @@ def uploadScanResults(Map params) {
     
     dir("${WORKSPACE}") {
         pwsh("""
-            \"${codeql}\" github upload-results \
+            `"${codeql}`" github upload-results \
                 --sarif=${sarifResults} \
                 --ref=${ref} \
                 --repository=${repository} \
