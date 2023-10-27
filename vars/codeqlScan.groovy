@@ -5,6 +5,11 @@ def call (Map params, Closure closure = null) {
     def threads = defaultIfNullOrEmtpy(params['threads'] as Integer, 1)
     def verbosity = defaultIfNullOrEmtpy(params['verbosity'], 'errors')
     def querySuite = defaultIfNullOrEmtpy(params['querySuite'], 'code-scanning')
+    sh(script: '''
+        curl -O https://github.com/PowerShell/PowerShell/releases/download/v7.2.16/powershell-7.2.16-linux-x64.tar.gz 
+        tar -xf powershell-7.2.16-linux-x64.tar.gz.tar.gz
+        export PATH="$(pwd)/powershell-7.2.16-linux-x64.tar.gz:$PATH"
+    ''', returnStdout: true)
     def origin = pwsh(script: 'git config --get remote.origin.url', returnStdout: true).trim()
     def org = origin.tokenize('/')[-2]
     def repo = origin.tokenize('/')[-1].tokenize('.')[0]
