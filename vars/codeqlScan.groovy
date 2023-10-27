@@ -84,7 +84,7 @@ def codeqlInstall() {
     def codeqlReleaseUrl = 'https://github.com/github/codeql-action/releases/download/codeql-bundle-v2.15.1/codeql-bundle-linux64.tar.gz'
     def codeqlArchivePath = "${WORKSPACE}/${tmp}/codeql-bundle-linux64.tar.gz"
     sh("curl -s -o ${codeqlArchivePath} -L ${codeqlReleaseUrl}")
-    def codeqlPAth = "${WORKSPACE}/${tmp}"
+    def codeqlPath = "${WORKSPACE}/${tmp}"
     sh("tar -xzf ${codeqlArchivePath} -C ${codeqlPath}")
     def codeql = getCodeqlExecutable()
     sh(script:"${codeql} --version", returnStdout: true).trim()
